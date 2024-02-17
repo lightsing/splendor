@@ -1,15 +1,14 @@
 use crate::action::ActionExt;
 use crate::cards::CardPool;
+use crate::error::StepError;
 use crate::nobles::Nobles;
 use crate::player::PlayerContext;
-use abi_stable::std_types::RVec;
 use rand::RngCore;
 use smallvec::SmallVec;
 use splendor_core::{
-    ActionRecord, CardPoolSnapshot, ColorVec, GameSnapshot, Noble, PlayerSnapshot, Record,
-    SelectNoblesAction, MAX_PLAYERS,
+    ActionRecord, CardPoolSnapshot, ColorVec, GameSnapshot, Noble, PlayerActor, PlayerSnapshot,
+    Record, SelectNoblesAction, MAX_PLAYERS,
 };
-use splendor_ffi::PlayerActor;
 use std::array;
 
 /// A struct to represent the game context.
@@ -31,10 +30,14 @@ pub struct GameContext {
 }
 
 impl GameContext {
+    /// Create a new game context with thread_rng.
     pub fn random(player_actors: SmallVec<Box<dyn PlayerActor>, MAX_PLAYERS>) -> Self {
         GameContext::with_rng(&mut rand::thread_rng(), player_actors)
     }
 
+    /// Create a new game context with a given random number generator.
+    ///
+    /// This can be used to create a game context with a specific seed for reproducibility.
     pub fn with_rng<R: RngCore>(
         rng: &mut R,
         player_actors: SmallVec<Box<dyn PlayerActor>, MAX_PLAYERS>,
@@ -64,9 +67,10 @@ impl GameContext {
         }
     }
 
-    pub fn step(&mut self) -> Option<SmallVec<usize, MAX_PLAYERS>> {
+    /// Step the game by one turn.
+    pub fn step(&mut self) -> Result<Option<SmallVec<usize, MAX_PLAYERS>>, StepError> {
         let action = self.player_actors[self.current_player].get_action(GameSnapshot::from(&*self));
-        assert!(action.is_valid(self), "Invalid action: {:?}", action);
+        action.is_valid(self)?;
         action.apply(self);
         self.records.push(Record::PlayerAction(ActionRecord::new(
             self.current_player,
@@ -76,7 +80,7 @@ impl GameContext {
         if self.players[self.current_player].tokens.total() > 10 {
             let drop_tokens =
                 self.player_actors[self.current_player].drop_tokens(GameSnapshot::from(&*self));
-            assert!(drop_tokens.is_valid(self));
+            drop_tokens.is_valid(self)?;
             drop_tokens.apply(self);
             self.records.push(Record::DropTokens(ActionRecord::new(
                 self.current_player,
@@ -97,11 +101,12 @@ impl GameContext {
             let (action, noble) = if noble_visits.len() > 1 {
                 let select_noble = self.player_actors[self.current_player]
                     .select_noble(GameSnapshot::from(&*self));
+                select_noble.is_valid(self)?;
                 (select_noble, self.nobles.get(select_noble.0))
             } else {
                 (SelectNoblesAction(noble_visits[0].0), noble_visits[0].1)
             };
-            assert!(action.is_valid(self));
+            debug_assert!(action.is_valid(self).is_ok());
             action.apply(self);
             self.records.push(Record::VisitNoble(ActionRecord::new(
                 self.current_player,
@@ -115,14 +120,14 @@ impl GameContext {
 
         if self.last_round && self.current_player == self.n_players - 1 {
             self.game_end = true;
-            return Some(self.get_winner());
+            return Ok(Some(self.get_winner()));
         }
 
         self.current_player = (self.current_player + 1) % self.n_players;
         if self.current_player == 0 {
             self.current_round += 1;
         }
-        None
+        Ok(None)
     }
 
     fn get_winner(&self) -> SmallVec<usize, MAX_PLAYERS> {
@@ -163,6 +168,43 @@ impl GameContext {
     }
 }
 
+impl GameContext {
+    /// Get the number of players in the game.
+    pub fn n_players(&self) -> usize {
+        self.n_players
+    }
+
+    /// Get is the game in the last round.
+    pub fn last_round(&self) -> bool {
+        self.last_round
+    }
+
+    /// Get is the game ended.
+    pub fn game_end(&self) -> bool {
+        self.game_end
+    }
+
+    /// Get the current round.
+    pub fn current_round(&self) -> usize {
+        self.current_round
+    }
+
+    /// Get the current player.
+    pub fn current_player(&self) -> usize {
+        self.current_player
+    }
+
+    /// Get the tokens available in the game.
+    pub fn tokens(&self) -> ColorVec {
+        self.tokens
+    }
+
+    /// Create a snapshot of the game.
+    pub fn snapshot(&self) -> GameSnapshot {
+        GameSnapshot::from(self)
+    }
+}
+
 impl From<&GameContext> for GameSnapshot {
     fn from(ctx: &GameContext) -> Self {
         Self {
@@ -171,8 +213,12 @@ impl From<&GameContext> for GameSnapshot {
             current_player: ctx.current_player,
             tokens: ctx.tokens,
             card_pool: (&ctx.card_pool).into(),
-            nobles: RVec::from(ctx.nobles.0.clone()),
-            players: ctx.players.iter().map(|p| p.into()).collect::<RVec<_>>(),
+            nobles: ctx.nobles.0.clone(),
+            players: ctx
+                .players
+                .iter()
+                .map(|p| p.into())
+                .collect::<SmallVec<_, MAX_PLAYERS>>(),
         }
     }
 }
@@ -195,30 +241,6 @@ impl From<&PlayerContext> for PlayerSnapshot {
             development_cards: player.development_cards.clone(),
             reserved_cards: player.reserved_cards.iter().map(|c| (*c).into()).collect(),
             nobles: player.nobles.clone(),
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use splendor_ffi::{load_module_from_file, WrappedActor};
-    use std::path::Path;
-
-    #[test]
-    fn test_actor() {
-        let actor_mod = load_module_from_file(Path::new("example.dll")).unwrap();
-        let actors = SmallVec::<_, 4>::from_buf(array::from_fn(|_| {
-            Box::new(WrappedActor::new(actor_mod).unwrap()) as Box<dyn PlayerActor>
-        }));
-        let mut game = GameContext::random(actors);
-        while !game.game_end {
-            game.step();
-            println!(
-                "{:?} {:?}",
-                game.records[game.records.len() - 1],
-                game.tokens
-            );
         }
     }
 }

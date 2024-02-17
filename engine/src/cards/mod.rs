@@ -1,6 +1,6 @@
-use abi_stable::std_types::RVec;
 use rand::prelude::SliceRandom;
 use rand::RngCore;
+use smallvec::SmallVec;
 use splendor_core::{Card, Tier};
 use strum::IntoEnumIterator;
 
@@ -9,16 +9,16 @@ use defs::*;
 
 /// A struct to represent the card pool.
 #[derive(Debug, Clone, Default)]
-pub struct CardPool {
-    pool: [RVec<Card>; 3],
-    pub revealed: [RVec<Card>; 3],
+pub(crate) struct CardPool {
+    pool: [SmallVec<Card, 40>; 3],
+    pub revealed: [SmallVec<Card, 4>; 3],
 }
 
 impl CardPool {
     pub fn with_rng<R: RngCore>(rng: &mut R) -> Self {
-        let mut tier1 = RVec::from(TIRE1_CARDS.as_slice());
-        let mut tier2 = RVec::from(TIRE2_CARDS.as_slice());
-        let mut tier3 = RVec::from(TIRE3_CARDS.as_slice());
+        let mut tier1 = SmallVec::from(TIRE1_CARDS.as_slice());
+        let mut tier2 = SmallVec::from(TIRE2_CARDS.as_slice());
+        let mut tier3 = SmallVec::from(TIRE3_CARDS.as_slice());
 
         tier1.shuffle(rng);
         tier2.shuffle(rng);

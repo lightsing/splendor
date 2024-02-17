@@ -1,35 +1,50 @@
-use crate::{Card, CardView, ColorVec, DevelopmentCards, Noble};
-use abi_stable::std_types::RVec;
-use abi_stable::StableAbi;
+use crate::{Card, CardView, ColorVec, DevelopmentCards, Noble, MAX_PLAYERS};
+use serde::Serialize;
+use smallvec::SmallVec;
 
-#[repr(C)]
-#[derive(StableAbi)]
+/// A struct to represent the game snapshot.
+#[derive(Serialize)]
 pub struct GameSnapshot {
+    /// Is the game in the last round.
     pub last_round: bool,
+    /// The current round.
     pub current_round: usize,
+    /// The current player.
     pub current_player: usize,
 
+    /// The tokens available in the game.
     pub tokens: ColorVec,
+    /// The card pool snapshot.
     pub card_pool: CardPoolSnapshot,
-    pub nobles: RVec<Noble>,
+    /// The nobles available in the game.
+    pub nobles: SmallVec<Noble, { MAX_PLAYERS + 1 }>,
 
-    pub players: RVec<PlayerSnapshot>,
+    /// The players' snapshot.
+    pub players: SmallVec<PlayerSnapshot, MAX_PLAYERS>,
 }
 
-#[repr(C)]
-#[derive(StableAbi)]
+/// A struct to represent the card pool snapshot.
+#[derive(Serialize)]
 pub struct CardPoolSnapshot {
+    /// The remaining cards in the pool.
     pub remaining: [usize; 3],
-    pub revealed: [RVec<Card>; 3],
+    /// The revealed cards in the pool.
+    pub revealed: [SmallVec<Card, 4>; 3],
 }
 
-#[repr(C)]
-#[derive(StableAbi)]
+/// A struct to represent the player snapshot.
+#[derive(Serialize)]
 pub struct PlayerSnapshot {
+    /// The index of the player.
     pub idx: usize,
+    /// The number of points the player has.
     pub points: u8,
+    /// The tokens the player has.
     pub tokens: ColorVec,
+    /// The development cards the player has.
     pub development_cards: DevelopmentCards,
-    pub reserved_cards: RVec<CardView>,
-    pub nobles: RVec<Noble>,
+    /// The reserved cards the player has.
+    pub reserved_cards: SmallVec<CardView, 3>,
+    /// The nobles the player has visited.
+    pub nobles: SmallVec<Noble, { MAX_PLAYERS + 1 }>,
 }

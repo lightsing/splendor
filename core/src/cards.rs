@@ -1,23 +1,26 @@
 use crate::colors::{Color, ColorVec};
-use abi_stable::std_types::RVec;
-use abi_stable::StableAbi;
 use num_enum::TryFromPrimitive;
+use serde::Serialize;
+use smallvec::SmallVec;
 use strum::EnumIter;
 
 /// An enum to represent the card tiers.
 #[repr(u8)]
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, EnumIter, TryFromPrimitive, StableAbi,
+    Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, EnumIter, TryFromPrimitive, Serialize,
 )]
 pub enum Tier {
+    /// The first tier.
     I = 0,
+    /// The second tier.
     II,
+    /// The third tier.
     III,
 }
 
 /// A struct to represent a card.
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, StableAbi)]
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct Card {
     /// The tier of the card.
     pub tier: Tier,
@@ -30,6 +33,7 @@ pub struct Card {
 }
 
 impl Card {
+    /// Define a new card.
     pub const fn new(tier: Tier, bonus: Color, points: u8, requires: ColorVec) -> Self {
         Card {
             tier,
@@ -41,12 +45,15 @@ impl Card {
 }
 
 /// A struct to represent the development cards in player's hand.
-#[repr(C)]
-#[derive(Debug, Default, Clone, StableAbi)]
+
+#[derive(Debug, Default, Clone, Serialize)]
 pub struct DevelopmentCards {
+    /// The total points of the development cards.
     pub points: u8,
+    /// The total bonus of the development cards.
     pub bonus: ColorVec,
-    inner: [RVec<Card>; 5],
+    /// The cards in the development cards, grouped by bonus color.
+    inner: [SmallVec<Card, 7>; 5],
 }
 
 impl DevelopmentCards {
@@ -57,11 +64,11 @@ impl DevelopmentCards {
             points: 0,
             bonus: ColorVec::empty(),
             inner: [
-                RVec::new(),
-                RVec::new(),
-                RVec::new(),
-                RVec::new(),
-                RVec::new(),
+                SmallVec::new(),
+                SmallVec::new(),
+                SmallVec::new(),
+                SmallVec::new(),
+                SmallVec::new(),
             ],
         }
     }
@@ -84,10 +91,11 @@ impl DevelopmentCards {
 /// A struct to represent a reserved card.
 ///
 /// Card can be invisible if it's reserved from the pool rather than the revealed cards.
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ReservedCard {
+    /// The card.
     pub card: Card,
+    /// Is the card invisible.
     pub invisible: bool,
 }
 
@@ -114,8 +122,7 @@ impl From<ReservedCard> for Card {
 }
 
 /// A struct to represent the view of other players' reserved cards.
-#[repr(C)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum CardView {
     /// The card is invisible.
     Invisible(Tier),

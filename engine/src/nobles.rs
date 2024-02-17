@@ -1,9 +1,10 @@
 use rand::prelude::SliceRandom;
 use rand::RngCore;
-use splendor_core::{ColorVec, Noble};
+use smallvec::SmallVec;
+use splendor_core::{ColorVec, Noble, MAX_PLAYERS};
 
 /// A struct to represent the noble pool.
-pub struct Nobles(pub Vec<Noble>);
+pub(crate) struct Nobles(pub SmallVec<Noble, { MAX_PLAYERS + 1 }>);
 
 impl Nobles {
     /// Create a new noble pool with a given random number generator.

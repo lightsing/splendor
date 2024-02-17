@@ -1,9 +1,8 @@
 use crate::colors::ColorVec;
-use abi_stable::StableAbi;
+use serde::Serialize;
 
 /// A struct to represent a noble.
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct Noble {
     /// The points of the noble.
     pub points: u8,
@@ -12,6 +11,7 @@ pub struct Noble {
 }
 
 impl Noble {
+    /// Define a new noble.
     pub const fn new(points: u8, requires: ColorVec) -> Self {
         Noble { points, requires }
     }

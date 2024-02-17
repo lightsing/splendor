@@ -1,58 +1,70 @@
-use abi_stable::StableAbi;
 use num_enum::TryFromPrimitive;
+use serde::Serialize;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 use strum::EnumIter;
 
 /// An enum to represent the colors.
 #[repr(u8)]
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, EnumIter, TryFromPrimitive, StableAbi,
+    Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, EnumIter, TryFromPrimitive, Serialize,
 )]
 pub enum Color {
+    /// Black color, Coal.
     Black = 0,
+    /// Blue color, Sapphire.
     Blue,
+    /// Green color, Emerald.
     Green,
+    /// Red color, Ruby.
     Red,
+    /// White color, Diamond.
     White,
+    /// Yellow color, Gold.
     Yellow,
 }
 
 /// A struct to represent the color combinations.
-#[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, StableAbi)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct ColorVec([u8; 6]);
 
 impl ColorVec {
+    /// Create a new empty color vector.
     #[inline(always)]
     pub const fn empty() -> Self {
         ColorVec([0; 6])
     }
 
+    /// Create a new color vector with the given values.
     #[inline(always)]
     pub const fn new(black: u8, blue: u8, green: u8, red: u8, white: u8, yellow: u8) -> Self {
         ColorVec([black, blue, green, red, white, yellow])
     }
 
+    /// Get the value of a color.
     #[inline(always)]
     pub fn get(&self, color: Color) -> u8 {
         self.0[color as usize]
     }
 
+    /// Set the value of a color.
     #[inline(always)]
     pub fn set(&mut self, color: Color, value: u8) {
         self.0[color as usize] = value;
     }
 
+    /// Add a value to a color.
     #[inline(always)]
     pub fn add(&mut self, color: Color, value: u8) {
         self.0[color as usize] += value;
     }
 
+    /// Get an iterator over the colors.
     #[inline(always)]
     pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
         self.0.iter().copied()
     }
 
+    /// Get the total number of tokens.
     #[inline(always)]
     pub fn total(&self) -> u8 {
         self.0.iter().sum()
