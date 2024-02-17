@@ -1,0 +1,6 @@
+[book]
+authors = ["Akase"]
+language = "zh-Hans"
+multilingual = false
+src = "src"
+title = "Splendor AI 比赛指南"
