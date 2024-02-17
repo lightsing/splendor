@@ -1,0 +1,13 @@
+[package]
+name = "splendor-engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+abi_stable.workspace = true
+rand.workspace = true
+smallvec.workspace = true
+splendor-core.workspace = true
+splendor-ffi.workspace = true
+strum.workspace = true
