@@ -1,0 +1,8 @@
+[package]
+name = "splendor-ws"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio-tungstenite = "0.21"

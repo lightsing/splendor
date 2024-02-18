@@ -1,12 +1,23 @@
 use num_enum::TryFromPrimitive;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 use strum::EnumIter;
 
 /// An enum to represent the colors.
 #[repr(u8)]
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, EnumIter, TryFromPrimitive, Serialize,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    EnumIter,
+    TryFromPrimitive,
+    Serialize,
+    Deserialize,
 )]
 pub enum Color {
     /// Black color, Coal.
@@ -24,7 +35,7 @@ pub enum Color {
 }
 
 /// A struct to represent the color combinations.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ColorVec([u8; 6]);
 
 impl ColorVec {

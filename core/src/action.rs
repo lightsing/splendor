@@ -1,16 +1,27 @@
 use crate::{ColorVec, Tier};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+
+/// An enum to represent the actions a player can take.
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub enum ActionType {
+    /// Get the action to take.
+    GetAction,
+    /// Get the tokens to drop.
+    DropTokens,
+    /// Select the noble to visit.
+    SelectNoble,
+}
 
 /// A struct to represent the drop tokens action.
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct DropTokensAction(pub ColorVec);
 
 /// A struct to represent the select nobles action.
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct SelectNoblesAction(pub usize);
 
 /// An enum to represent the actions a player can take.
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum PlayerAction {
     /// Take tokens.
     TakeTokens(TakeTokenAction),
@@ -23,7 +34,7 @@ pub enum PlayerAction {
 }
 
 /// An enum to represent the take tokens action.
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum TakeTokenAction {
     /// Take up to 3 different color tokens.
     ThreeDifferent(ColorVec),
@@ -32,7 +43,7 @@ pub enum TakeTokenAction {
 }
 
 /// A struct to represent the buy card action.
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct BuyCardAction {
     /// The tier of the bought card.
     pub tier: Tier,
@@ -43,7 +54,7 @@ pub struct BuyCardAction {
 }
 
 /// A struct to represent the reserve card action.
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct ReserveCardAction {
     /// The source tier of the reserved card.
     pub tier: Tier,

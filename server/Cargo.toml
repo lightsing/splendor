@@ -1,0 +1,22 @@
+[package]
+name = "splendor-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = "1.0"
+async-trait.workspace = true
+futures-util = "0.3"
+log.workspace = true
+pretty_env_logger.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+smallvec.workspace = true
+splendor-core.workspace = true
+splendor-engine.workspace = true
+tokio = { version = "1", features = ["full"] }
+tokio-tungstenite = "0.21"
+thiserror.workspace = true

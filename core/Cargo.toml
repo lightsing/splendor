@@ -5,7 +5,9 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+async-trait.workspace = true
 num_enum.workspace = true
 serde.workspace = true
 smallvec.workspace = true
 strum.workspace = true
+thiserror.workspace = true

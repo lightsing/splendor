@@ -1,8 +1,8 @@
 use crate::colors::ColorVec;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// A struct to represent a noble.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Noble {
     /// The points of the noble.
     pub points: u8,

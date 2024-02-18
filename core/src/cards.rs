@@ -1,13 +1,24 @@
 use crate::colors::{Color, ColorVec};
 use num_enum::TryFromPrimitive;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use strum::EnumIter;
 
 /// An enum to represent the card tiers.
 #[repr(u8)]
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, EnumIter, TryFromPrimitive, Serialize,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    EnumIter,
+    TryFromPrimitive,
+    Serialize,
+    Deserialize,
 )]
 pub enum Tier {
     /// The first tier.
@@ -20,7 +31,7 @@ pub enum Tier {
 
 /// A struct to represent a card.
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Card {
     /// The tier of the card.
     pub tier: Tier,
@@ -46,7 +57,7 @@ impl Card {
 
 /// A struct to represent the development cards in player's hand.
 
-#[derive(Debug, Default, Clone, Serialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct DevelopmentCards {
     /// The total points of the development cards.
     pub points: u8,
@@ -122,7 +133,7 @@ impl From<ReservedCard> for Card {
 }
 
 /// A struct to represent the view of other players' reserved cards.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum CardView {
     /// The card is invisible.
     Invisible(Tier),

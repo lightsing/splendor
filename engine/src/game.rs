@@ -68,8 +68,11 @@ impl GameContext {
     }
 
     /// Step the game by one turn.
-    pub fn step(&mut self) -> Result<Option<SmallVec<usize, MAX_PLAYERS>>, StepError> {
-        let action = self.player_actors[self.current_player].get_action(GameSnapshot::from(&*self));
+    pub async fn step(&mut self) -> Result<Option<SmallVec<usize, MAX_PLAYERS>>, StepError> {
+        let snapshot = self.snapshot();
+        let action = self.player_actors[self.current_player]
+            .get_action(snapshot)
+            .await?;
         action.is_valid(self)?;
         action.apply(self);
         self.records.push(Record::PlayerAction(ActionRecord::new(
@@ -78,8 +81,10 @@ impl GameContext {
         )));
 
         if self.players[self.current_player].tokens.total() > 10 {
-            let drop_tokens =
-                self.player_actors[self.current_player].drop_tokens(GameSnapshot::from(&*self));
+            let snapshot = self.snapshot();
+            let drop_tokens = self.player_actors[self.current_player]
+                .drop_tokens(snapshot)
+                .await?;
             drop_tokens.is_valid(self)?;
             drop_tokens.apply(self);
             self.records.push(Record::DropTokens(ActionRecord::new(
@@ -99,8 +104,10 @@ impl GameContext {
             .collect();
         if !noble_visits.is_empty() {
             let (action, noble) = if noble_visits.len() > 1 {
+                let snapshot = self.snapshot();
                 let select_noble = self.player_actors[self.current_player]
-                    .select_noble(GameSnapshot::from(&*self));
+                    .select_noble(snapshot)
+                    .await?;
                 select_noble.is_valid(self)?;
                 (select_noble, self.nobles.get(select_noble.0))
             } else {

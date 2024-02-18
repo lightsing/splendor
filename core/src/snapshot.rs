@@ -1,9 +1,9 @@
 use crate::{Card, CardView, ColorVec, DevelopmentCards, Noble, MAX_PLAYERS};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
 /// A struct to represent the game snapshot.
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GameSnapshot {
     /// Is the game in the last round.
     pub last_round: bool,
@@ -24,7 +24,7 @@ pub struct GameSnapshot {
 }
 
 /// A struct to represent the card pool snapshot.
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CardPoolSnapshot {
     /// The remaining cards in the pool.
     pub remaining: [usize; 3],
@@ -33,7 +33,7 @@ pub struct CardPoolSnapshot {
 }
 
 /// A struct to represent the player snapshot.
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PlayerSnapshot {
     /// The index of the player.
     pub idx: usize,
