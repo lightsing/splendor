@@ -1,4 +1,4 @@
-use num_enum::TryFromPrimitive;
+use num_enum::{TryFromPrimitive, TryFromPrimitiveError};
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 use strum::EnumIter;
@@ -19,6 +19,7 @@ use strum::EnumIter;
     Serialize,
     Deserialize,
 )]
+#[serde(rename_all = "snake_case")]
 pub enum Color {
     /// Black color, Coal.
     Black = 0,
@@ -32,6 +33,21 @@ pub enum Color {
     White,
     /// Yellow color, Gold.
     Yellow,
+}
+
+impl Color {
+    /// Get the emoji representation of the color.
+    #[inline(always)]
+    pub fn emoji(&self) -> &'static str {
+        match self {
+            Color::Black => "⚫",
+            Color::Blue => "🔵",
+            Color::Green => "🟢",
+            Color::Red => "🔴",
+            Color::White => "⚪",
+            Color::Yellow => "🟡",
+        }
+    }
 }
 
 /// A struct to represent the color combinations.
@@ -69,6 +85,12 @@ impl ColorVec {
         self.0[color as usize] += value;
     }
 
+    /// Sub a value to a color.
+    #[inline(always)]
+    pub fn sub(&mut self, color: Color, value: u8) {
+        self.0[color as usize] -= value;
+    }
+
     /// Get an iterator over the colors.
     #[inline(always)]
     pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
@@ -79,6 +101,16 @@ impl ColorVec {
     #[inline(always)]
     pub fn total(&self) -> u8 {
         self.0.iter().sum()
+    }
+
+    /// Saturation subtraction.
+    #[inline(always)]
+    pub fn saturating_sub(&self, rhs: &Self) -> Self {
+        let mut res = ColorVec::empty();
+        for (color, (a, b)) in self.0.iter().zip(rhs.0.iter()).enumerate() {
+            res.set(Color::try_from(color).unwrap(), a.saturating_sub(*b));
+        }
+        res
     }
 }
 
@@ -160,5 +192,13 @@ impl SubAssign<&ColorVec> for ColorVec {
             .iter_mut()
             .zip(rhs.0.iter())
             .for_each(|(a, b)| *a -= b);
+    }
+}
+
+impl TryFrom<usize> for Color {
+    type Error = TryFromPrimitiveError<Color>;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        Color::try_from(value as u8)
     }
 }

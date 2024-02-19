@@ -1,11 +1,12 @@
 use crate::error::InvalidActionError;
 use crate::game::GameContext;
 use splendor_core::{
-    BuyCardAction, Color, DropTokensAction, PlayerAction, ReserveCardAction, ReservedCard,
-    SelectNoblesAction, TakeTokenAction,
+    BuyCardAction, BuyCardSource, Color, DropTokensAction, PlayerAction, ReserveCardAction,
+    ReservedCard, SelectNoblesAction, TakeTokenAction,
 };
+use std::fmt::Debug;
 
-pub trait ActionExt {
+pub trait ActionExt: Debug {
     fn is_valid(&self, ctx: &GameContext) -> Result<(), InvalidActionError>;
     fn apply(&self, ctx: &mut GameContext);
 
@@ -16,6 +17,10 @@ pub trait ActionExt {
         reason: &'static str,
     ) -> Result<(), InvalidActionError> {
         if !cond {
+            error!(
+                "Player#{} took an invalid action: {self:?}, reason {reason}",
+                ctx.current_player
+            );
             return Err(InvalidActionError {
                 player: ctx.current_player,
                 reason,
@@ -41,7 +46,8 @@ impl ActionExt for DropTokensAction {
     }
 
     fn apply(&self, ctx: &mut GameContext) {
-        ctx.tokens -= self.0;
+        ctx.players[ctx.current_player].tokens -= self.0;
+        ctx.tokens += self.0;
     }
 }
 
@@ -72,7 +78,7 @@ impl ActionExt for PlayerAction {
             PlayerAction::TakeTokens(action) => action.is_valid(ctx),
             PlayerAction::BuyCard(action) => action.is_valid(ctx),
             PlayerAction::ReserveCard(action) => action.is_valid(ctx),
-            PlayerAction::NoOp => Ok(()),
+            PlayerAction::Nop => Ok(()),
         }
     }
 
@@ -81,7 +87,7 @@ impl ActionExt for PlayerAction {
             PlayerAction::TakeTokens(action) => action.apply(ctx),
             PlayerAction::BuyCard(action) => action.apply(ctx),
             PlayerAction::ReserveCard(action) => action.apply(ctx),
-            PlayerAction::NoOp => {}
+            PlayerAction::Nop => {}
         }
     }
 }
@@ -90,10 +96,12 @@ impl ActionExt for TakeTokenAction {
     fn is_valid(&self, ctx: &GameContext) -> Result<(), InvalidActionError> {
         self.require(
             ctx,
-            self.tokens()
-                .iter()
-                .zip(ctx.tokens.iter())
-                .all(|(cnt, available)| cnt <= available),
+            self.tokens().get(Color::Yellow) == 0,
+            "cannot take yellow tokens",
+        )?;
+        self.require(
+            ctx,
+            *self.tokens() <= ctx.tokens,
             "not enough tokens available",
         )?;
         match self {
@@ -128,17 +136,26 @@ impl ActionExt for TakeTokenAction {
         let tokens = self.tokens();
         ctx.tokens -= tokens;
         ctx.players[ctx.current_player].tokens += tokens;
+        trace!(
+            "Player#{} now has tokens: {:?}, remaining tokens: {:?}",
+            ctx.current_player,
+            ctx.players[ctx.current_player].tokens,
+            ctx.tokens
+        );
     }
 }
 
 impl ActionExt for BuyCardAction {
     fn is_valid(&self, ctx: &GameContext) -> Result<(), InvalidActionError> {
+        let player = &ctx.players[ctx.current_player];
         // Check if the card is available.
-        let card = ctx.card_pool.peek(self.tier, self.idx);
+        let card = match self.source {
+            BuyCardSource::Revealed { tier, idx } => ctx.card_pool.peek(tier, idx),
+            BuyCardSource::Reserved(idx) => player.reserved_cards.get(idx).map(|c| &c.card),
+        };
         self.require(ctx, card.is_some(), "card index out of range")?;
         let card = card.unwrap();
         // Check if the player has enough tokens.
-        let player = &ctx.players[ctx.current_player];
         self.require(ctx, player.tokens >= self.uses, "not enough tokens to use")?;
         // Check use of tokens matches the card.
         let available = player.development_cards.bonus + self.uses;
@@ -157,10 +174,14 @@ impl ActionExt for BuyCardAction {
     }
 
     fn apply(&self, ctx: &mut GameContext) {
-        let card = ctx.card_pool.take(self.tier, self.idx);
         let player = &mut ctx.players[ctx.current_player];
+        let card = match self.source {
+            BuyCardSource::Revealed { tier, idx } => ctx.card_pool.take(tier, idx),
+            BuyCardSource::Reserved(idx) => player.reserved_cards.remove(idx).card,
+        };
         player.development_cards.add(card);
         player.tokens -= self.uses;
+        ctx.tokens += self.uses;
     }
 }
 
@@ -198,5 +219,9 @@ impl ActionExt for ReserveCardAction {
         };
         let player = &mut ctx.players[ctx.current_player];
         player.reserved_cards.push(card);
+        if ctx.tokens.get(Color::Yellow) > 0 {
+            ctx.tokens.sub(Color::Yellow, 1);
+            player.tokens.add(Color::Yellow, 1);
+        }
     }
 }

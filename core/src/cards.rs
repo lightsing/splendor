@@ -1,25 +1,12 @@
 use crate::colors::{Color, ColorVec};
-use num_enum::TryFromPrimitive;
+use num_enum::{TryFromPrimitive, TryFromPrimitiveError};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use strum::EnumIter;
 
 /// An enum to represent the card tiers.
 #[repr(u8)]
-#[derive(
-    Debug,
-    Copy,
-    Clone,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    EnumIter,
-    TryFromPrimitive,
-    Serialize,
-    Deserialize,
-)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, EnumIter, TryFromPrimitive)]
 pub enum Tier {
     /// The first tier.
     I = 0,
@@ -27,6 +14,41 @@ pub enum Tier {
     II,
     /// The third tier.
     III,
+}
+
+impl Tier {
+    /// Get the emoji representation of the tier.
+    #[inline(always)]
+    pub fn emoji(&self) -> &'static str {
+        match self {
+            Tier::I => "1️⃣",
+            Tier::II => "2️⃣",
+            Tier::III => "3️⃣",
+        }
+    }
+}
+
+impl Serialize for Tier {
+    #[inline(always)]
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_u8(*self as u8)
+    }
+}
+
+impl<'de> Deserialize<'de> for Tier {
+    #[inline(always)]
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(Tier::try_from(u8::deserialize(deserializer)?).map_err(serde::de::Error::custom)?)
+    }
+}
+
+impl TryFrom<usize> for Tier {
+    type Error = TryFromPrimitiveError<Self>;
+
+    #[inline(always)]
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        Tier::try_from(value as u8)
+    }
 }
 
 /// A struct to represent a card.
@@ -64,7 +86,7 @@ pub struct DevelopmentCards {
     /// The total bonus of the development cards.
     pub bonus: ColorVec,
     /// The cards in the development cards, grouped by bonus color.
-    inner: [SmallVec<Card, 7>; 5],
+    pub inner: [SmallVec<Card, 7>; 5],
 }
 
 impl DevelopmentCards {
@@ -134,11 +156,30 @@ impl From<ReservedCard> for Card {
 
 /// A struct to represent the view of other players' reserved cards.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(tag = "type", content = "view")]
+#[serde(rename_all = "snake_case")]
 pub enum CardView {
     /// The card is invisible.
     Invisible(Tier),
     /// The card is visible.
     Visible(Card),
+}
+
+impl CardView {
+    /// Construct a new visible card view.
+    #[inline(always)]
+    pub const fn visible(card: Card) -> Self {
+        CardView::Visible(card)
+    }
+
+    /// unwrap the card view.
+    #[inline(always)]
+    pub fn unwrap(&self) -> &Card {
+        match self {
+            CardView::Visible(ref card) => card,
+            _ => panic!("cannot unwrap invisible card"),
+        }
+    }
 }
 
 impl From<ReservedCard> for CardView {

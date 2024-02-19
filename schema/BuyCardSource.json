@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BuyCardSource",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "revealed"
+          ]
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "tier": {
+              "$ref": "./Tier.json"
+            },
+            "idx": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            }
+          },
+          "required": [
+            "tier",
+            "idx"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "location"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "reserved"
+          ]
+        },
+        "location": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        }
+      },
+      "required": [
+        "type",
+        "location"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

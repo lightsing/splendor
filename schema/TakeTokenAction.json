@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TakeTokenAction",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "three_different"
+          ]
+        },
+        "tokens": {
+          "$ref": "./ColorVec.json"
+        }
+      },
+      "required": [
+        "type",
+        "tokens"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "two_same"
+          ]
+        },
+        "tokens": {
+          "$ref": "./ColorVec.json"
+        }
+      },
+      "required": [
+        "type",
+        "tokens"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

@@ -137,6 +137,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ctor"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30d2b3721e861707777e3195b0158f950ae6dc4a27e4d02ff9f67e3eb3de199e"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -696,8 +706,11 @@ name = "splendor-core"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "log",
  "num_enum",
+ "rand",
  "serde",
+ "serde_json",
  "smallvec 2.0.0-alpha.3",
  "strum",
  "thiserror",
@@ -707,12 +720,17 @@ dependencies = [
 name = "splendor-engine"
 version = "0.1.0"
 dependencies = [
+ "ctor",
+ "log",
+ "pretty_env_logger",
  "rand",
  "serde",
+ "serde_json",
  "smallvec 2.0.0-alpha.3",
  "splendor-core",
  "strum",
  "thiserror",
+ "tokio",
 ]
 
 [[package]]

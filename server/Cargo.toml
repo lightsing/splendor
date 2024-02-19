@@ -17,6 +17,6 @@ serde_json.workspace = true
 smallvec.workspace = true
 splendor-core.workspace = true
 splendor-engine.workspace = true
-tokio = { version = "1", features = ["full"] }
+tokio.workspace = true
 tokio-tungstenite = "0.21"
 thiserror.workspace = true

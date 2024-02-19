@@ -4,6 +4,7 @@ use smallvec::SmallVec;
 use splendor_core::{ColorVec, Noble, MAX_PLAYERS};
 
 /// A struct to represent the noble pool.
+#[derive(Debug)]
 pub(crate) struct Nobles(pub SmallVec<Noble, { MAX_PLAYERS + 1 }>);
 
 impl Nobles {
@@ -36,14 +37,14 @@ impl Nobles {
 }
 
 const NOBLES: [Noble; 10] = [
-    Noble::new(3, ColorVec::new(0, 0, 4, 4, 0, 0)),
-    Noble::new(3, ColorVec::new(0, 4, 0, 0, 4, 0)),
-    Noble::new(3, ColorVec::new(4, 0, 0, 0, 4, 0)),
-    Noble::new(3, ColorVec::new(0, 4, 4, 0, 0, 0)),
-    Noble::new(3, ColorVec::new(4, 0, 0, 4, 0, 0)),
-    Noble::new(3, ColorVec::new(3, 0, 0, 3, 3, 0)),
-    Noble::new(3, ColorVec::new(3, 3, 0, 0, 3, 0)),
-    Noble::new(3, ColorVec::new(0, 3, 3, 3, 0, 0)),
-    Noble::new(3, ColorVec::new(0, 3, 3, 0, 3, 0)),
-    Noble::new(3, ColorVec::new(3, 0, 3, 3, 0, 0)),
+    Noble::new(ColorVec::new(0, 0, 4, 4, 0, 0)),
+    Noble::new(ColorVec::new(0, 4, 0, 0, 4, 0)),
+    Noble::new(ColorVec::new(4, 0, 0, 0, 4, 0)),
+    Noble::new(ColorVec::new(0, 4, 4, 0, 0, 0)),
+    Noble::new(ColorVec::new(4, 0, 0, 4, 0, 0)),
+    Noble::new(ColorVec::new(3, 0, 0, 3, 3, 0)),
+    Noble::new(ColorVec::new(3, 3, 0, 0, 3, 0)),
+    Noble::new(ColorVec::new(0, 3, 3, 3, 0, 0)),
+    Noble::new(ColorVec::new(0, 3, 3, 0, 3, 0)),
+    Noble::new(ColorVec::new(3, 0, 3, 3, 0, 0)),
 ];

@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReserveCardAction",
+  "type": "object",
+  "properties": {
+    "tier": {
+      "$ref": "./Tier.json"
+    },
+    "idx": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    }
+  },
+  "required": [
+    "tier"
+  ],
+  "additionalProperties": false
+}

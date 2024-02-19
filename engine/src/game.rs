@@ -6,16 +6,18 @@ use crate::player::PlayerContext;
 use rand::RngCore;
 use smallvec::SmallVec;
 use splendor_core::{
-    ActionRecord, CardPoolSnapshot, ColorVec, GameSnapshot, Noble, PlayerActor, PlayerSnapshot,
-    Record, SelectNoblesAction, MAX_PLAYERS,
+    ActionRecord, CardPoolSnapshot, Color, ColorVec, GameSnapshot, Noble, PlayerActor,
+    PlayerSnapshot, Record, SelectNoblesAction, Tier, MAX_PLAYERS,
 };
 use std::array;
 
 /// A struct to represent the game context.
+#[derive(Debug)]
 pub struct GameContext {
     pub(crate) n_players: usize,
     pub(crate) last_round: bool,
     pub(crate) game_end: bool,
+    pub(crate) nop_count: usize,
     pub(crate) current_round: usize,
     pub(crate) current_player: usize,
 
@@ -57,6 +59,7 @@ impl GameContext {
             current_round: 0,
             last_round: false,
             game_end: false,
+            nop_count: 0,
             current_player: 0,
             tokens,
             card_pool,
@@ -74,18 +77,28 @@ impl GameContext {
             .get_action(snapshot)
             .await?;
         action.is_valid(self)?;
+        trace!("Player#{} action: {:?}", self.current_player, action);
         action.apply(self);
         self.records.push(Record::PlayerAction(ActionRecord::new(
             self.current_player,
             action,
         )));
+        if action.is_nop() {
+            self.nop_count += 1;
+        }
 
         if self.players[self.current_player].tokens.total() > 10 {
+            trace!("Player#{} needs to drop tokens", self.current_player);
             let snapshot = self.snapshot();
             let drop_tokens = self.player_actors[self.current_player]
                 .drop_tokens(snapshot)
                 .await?;
             drop_tokens.is_valid(self)?;
+            trace!(
+                "Player#{} dropped tokens: {:?}",
+                self.current_player,
+                drop_tokens
+            );
             drop_tokens.apply(self);
             self.records.push(Record::DropTokens(ActionRecord::new(
                 self.current_player,
@@ -103,6 +116,7 @@ impl GameContext {
             })
             .collect();
         if !noble_visits.is_empty() {
+            trace!("Player#{} can visit nobles", self.current_player);
             let (action, noble) = if noble_visits.len() > 1 {
                 let snapshot = self.snapshot();
                 let select_noble = self.player_actors[self.current_player]
@@ -114,6 +128,7 @@ impl GameContext {
                 (SelectNoblesAction(noble_visits[0].0), noble_visits[0].1)
             };
             debug_assert!(action.is_valid(self).is_ok());
+            trace!("Player#{} visited noble: {:?}", self.current_player, noble);
             action.apply(self);
             self.records.push(Record::VisitNoble(ActionRecord::new(
                 self.current_player,
@@ -121,17 +136,33 @@ impl GameContext {
             )));
         }
 
+        trace!(
+            "Player#{} ended turn, current points: {}",
+            self.current_player,
+            self.players[self.current_player].points()
+        );
         if self.players[self.current_player].points() >= 15 {
+            trace!(
+                "Player#{} reached 15 points, this is the last turn",
+                self.current_player
+            );
             self.last_round = true;
         }
 
         if self.last_round && self.current_player == self.n_players - 1 {
+            trace!("Game ended");
             self.game_end = true;
             return Ok(Some(self.get_winner()));
         }
 
         self.current_player = (self.current_player + 1) % self.n_players;
         if self.current_player == 0 {
+            trace!("Round {} ended", self.current_round);
+            if self.nop_count == self.n_players {
+                self.pretty_print();
+                panic!("All players did nothing, game stuck, {:#?}", self);
+            }
+            self.nop_count = 0;
             self.current_round += 1;
         }
         Ok(None)
@@ -151,7 +182,7 @@ impl GameContext {
             .filter(|(_, &p)| p == max_points)
             .map(|(i, _)| i)
             .collect::<SmallVec<usize, MAX_PLAYERS>>();
-        if winner_candidates.len() > 1 {
+        let winner = if winner_candidates.len() > 1 {
             // player with the fewest development cards wins
             let development_cards = winner_candidates
                 .iter()
@@ -171,6 +202,65 @@ impl GameContext {
                 .collect()
         } else {
             winner_candidates
+        };
+
+        trace!("Winner(s): {:?}", winner);
+
+        winner
+    }
+
+    fn pretty_print(&self) {
+        println!("current round: {}", self.current_round);
+        println!("current player: {}", self.current_player);
+        print!("tokens remaining:");
+        for (color, cnt) in self.tokens.iter().enumerate() {
+            print!("    {} {}", Color::try_from(color).unwrap().emoji(), cnt);
+        }
+        println!();
+        println!("card pool remaining: {:?}", self.card_pool.remaining());
+
+        for (tier, cards) in self.card_pool.revealed.iter().enumerate() {
+            print!("{}", Tier::try_from(tier).unwrap().emoji());
+            for card in cards {
+                print!("    ");
+                print!("{}", card.bonus.emoji());
+                print!(" {:?}", card.points);
+                for cnt in card.requires.iter().take(5) {
+                    print!(" {:?}", cnt);
+                }
+            }
+            println!();
+        }
+
+        for player in self.players.iter() {
+            println!("player#{}", player.idx);
+            println!("points: {}", player.points());
+            println!("tokens:");
+            for (color, cnt) in player.tokens.iter().enumerate() {
+                print!("    {} {}", Color::try_from(color).unwrap().emoji(), cnt);
+            }
+            println!();
+            println!("development cards:");
+            for (color, cards) in player.development_cards.inner.iter().enumerate() {
+                print!("{}", Color::try_from(color).unwrap().emoji());
+                for card in cards {
+                    print!("    ");
+                    print!("{}", card.tier.emoji());
+                    print!(" {:?}", card.points);
+                }
+                println!();
+            }
+            println!("reserved cards:");
+            for card in player.reserved_cards.iter() {
+                print!("    ");
+                print!("{}", card.card.bonus.emoji());
+                print!(" {:?}", card.card.points);
+                for cnt in card.card.requires.iter().take(5) {
+                    print!(" {:?}", cnt);
+                }
+                println!();
+            }
+            println!();
         }
     }
 }
@@ -224,7 +314,7 @@ impl From<&GameContext> for GameSnapshot {
             players: ctx
                 .players
                 .iter()
-                .map(|p| p.into())
+                .map(|p| p.snapshot(ctx.current_player))
                 .collect::<SmallVec<_, MAX_PLAYERS>>(),
         }
     }
@@ -235,19 +325,6 @@ impl From<&CardPool> for CardPoolSnapshot {
         Self {
             remaining: pool.remaining(),
             revealed: pool.revealed.clone(),
-        }
-    }
-}
-
-impl From<&PlayerContext> for PlayerSnapshot {
-    fn from(player: &PlayerContext) -> Self {
-        Self {
-            idx: player.idx,
-            points: player.points(),
-            tokens: player.tokens,
-            development_cards: player.development_cards.clone(),
-            reserved_cards: player.reserved_cards.iter().map(|c| (*c).into()).collect(),
-            nobles: player.nobles.clone(),
         }
     }
 }

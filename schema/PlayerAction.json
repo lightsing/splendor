@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PlayerAction",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "take_tokens"
+          ]
+        },
+        "action": {
+          "$ref": "./TakeTokenAction.json"
+        }
+      },
+      "required": [
+        "type",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "buy_card"
+          ]
+        },
+        "action": {
+          "$ref": "./BuyCardAction.json"
+        }
+      },
+      "required": [
+        "type",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "reserve_card"
+          ]
+        },
+        "action": {
+          "$ref": "./ReserveCardAction.json"
+        }
+      },
+      "required": [
+        "type",
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "nop"
+          ]
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

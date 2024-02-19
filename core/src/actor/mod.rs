@@ -1,6 +1,10 @@
 use crate::{ActionType, DropTokensAction, GameSnapshot, PlayerAction, SelectNoblesAction};
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
+
+/// Some naive implementations of the player actor trait.
+#[cfg(feature = "naive_actors")]
+pub mod naive_actors;
 
 /// An error type for actor errors.
 #[derive(Debug)]
@@ -21,7 +25,7 @@ where
 
 impl Display for ActorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.error.fmt(f)
+        write!(f, "ActorError: {}", self.error)
     }
 }
 
@@ -39,7 +43,7 @@ pub struct ActionRequest {
 
 /// A player actor trait.
 #[async_trait::async_trait]
-pub trait PlayerActor: Send + Sync {
+pub trait PlayerActor: Send + Sync + Debug {
     /// It's the player's turn. Get the action to take.
     async fn get_action(&mut self, snapshot: GameSnapshot) -> Result<PlayerAction, ActorError>;
 

@@ -1,5 +1,7 @@
 use smallvec::SmallVec;
-use splendor_core::{ColorVec, DevelopmentCards, Noble, ReservedCard, MAX_PLAYERS};
+use splendor_core::{
+    CardView, ColorVec, DevelopmentCards, Noble, PlayerSnapshot, ReservedCard, MAX_PLAYERS,
+};
 
 #[derive(Debug, Clone, Default)]
 pub(crate) struct PlayerContext {
@@ -29,6 +31,27 @@ impl PlayerContext {
     }
 
     pub fn points(&self) -> u8 {
-        self.development_cards.points + self.nobles.iter().map(|n| n.points).sum::<u8>()
+        self.development_cards.points + self.nobles.iter().count() as u8 * 3
+    }
+
+    pub fn snapshot(&self, view_as: usize) -> PlayerSnapshot {
+        PlayerSnapshot {
+            idx: self.idx,
+            points: self.points(),
+            tokens: self.tokens,
+            development_cards: self.development_cards.clone(),
+            reserved_cards: self
+                .reserved_cards
+                .iter()
+                .map(|c| {
+                    if view_as == self.idx {
+                        CardView::visible(c.card)
+                    } else {
+                        (*c).into()
+                    }
+                })
+                .collect(),
+            nobles: self.nobles.clone(),
+        }
     }
 }

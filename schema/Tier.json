@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tier",
+  "type": "integer",
+  "enum": [
+    0,
+    1,
+    2
+  ]
+}
