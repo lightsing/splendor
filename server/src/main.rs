@@ -56,14 +56,9 @@ fn gen_secrets(n: usize) -> &'static [String] {
 }
 
 async fn write_secrets(secrets: &[String]) -> anyhow::Result<()> {
-    let paths = env::var("SECRETS_PATHS")?;
-    let mut paths = paths.split(',');
-    for secret in secrets {
-        let path = paths
-            .next()
-            .ok_or_else(|| anyhow::anyhow!("not enough paths"))?;
-        let path = path.trim();
-        tokio::fs::write(path, secret).await?;
+    let path = env::var("SECRETS_PATH")?;
+    for (idx, secret) in secrets.iter().enumerate() {
+        tokio::fs::write(format!("{}/player{}", path, idx), secret).await?;
     }
     Ok(())
 }

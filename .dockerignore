@@ -1,0 +1,18 @@
+# Minimize docker build context
+/.git
+/.github
+/.idea
+# book
+/book
+# other language sdk
+/sdk
+# json schema
+/schema
+# Rust built target
+/target
+
+# Misc files
+.gitignore
+.gitattribute
+.dockerignore
+LICENSE
