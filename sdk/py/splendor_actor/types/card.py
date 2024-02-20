@@ -73,7 +73,7 @@ class CardView:
 
     def __init__(self, type: str, view: Union[Dict, int]):
         self.type = ReservedCardType.from_str(type)
-        if self.type == ReservedCardType.Visible:
+        if self.type == ReservedCardType.Visible and isinstance(view, dict):
             self.view = Card(**view)
         else:
             self.view = Tier(view)
@@ -82,7 +82,7 @@ class CardView:
         """
         unwrap the card if it is visible
         """
-        if self.type == ReservedCardType.Visible:
+        if self.type == ReservedCardType.Visible and isinstance(self.view, Card):
             return self.view
         else:
             raise ValueError("This card is invisible")

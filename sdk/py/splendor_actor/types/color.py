@@ -14,6 +14,7 @@ class Color(Enum):
     WHITE = 4
     YELLOW = 5
 
+    @staticmethod
     def from_str(s: str) -> "Color":
         """
         Convert a string to a Color enum
@@ -55,6 +56,8 @@ class ColorVec:
     vec: List[int]
 
     def __init__(self, vec: List[int]):
+        assert len(vec) == 6, "ColorVec should have 6 elements"
+
         self.vec = vec
 
     def __getitem__(self, index: Union[int, Color]) -> int:

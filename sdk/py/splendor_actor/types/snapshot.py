@@ -39,6 +39,7 @@ class GameSnapshot:
         self.nobles = [Noble(**noble) for noble in nobles]
         self.players = [Player(**player) for player in players]
 
+    @staticmethod
     def from_json(json: Dict) -> "GameSnapshot":
         """
         Convert a json to a GameSnapshot
