@@ -70,31 +70,31 @@ class ColorVec:
             self.vec[index] = value
         else:
             self.vec[index.value] = value
-    
+
     def __lt__(self, other):
         return self.vec < other.vec
-    
+
     def __le__(self, other):
         return self.vec <= other.vec
-    
+
     def __gt__(self, other):
         return self.vec > other.vec
-    
+
     def __ge__(self, other):
         return self.vec >= other.vec
-    
+
     def __eq__(self, other):
         return self.vec == other.vec
-    
+
     def __ne__(self, other):
         return self.vec != other.vec
-    
+
     def __iter__(self):
         return ((Color(color), count) for color, count in enumerate(self.vec))
-    
+
     def __add__(self, other):
         return ColorVec([a + b for a, b in zip(self.vec, other.vec)])
-    
+
     def __sub__(self, other):
         return ColorVec([a - b for a, b in zip(self.vec, other.vec)])
 
@@ -103,7 +103,7 @@ class ColorVec:
         Subtract other from self, but never go below 0
         """
         return ColorVec([max(a - b, 0) for a, b in zip(self.vec, other.vec)])
-    
+
     def total(self):
         """
         Return the total number of tokens in the vector

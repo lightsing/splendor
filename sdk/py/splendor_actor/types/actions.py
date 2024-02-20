@@ -11,6 +11,7 @@ PlayerAction = Union[
     "NopAction",
 ]
 
+
 class NopAction:
     """
     represent the action of doing nothing
@@ -37,12 +38,14 @@ class TakeTokenAction:
         self.tokens = tokens
 
     @classmethod
-    def three_different(cls, tokens: Set[Color]):
+    def three_different(cls, tokens: Union[Set[Color], List[Color]]):
         """
         create a TakeTokenAction with at most three different tokens
         """
         assert len(tokens) <= 3
         vec = ColorVec.empty()
+        if isinstance(tokens, list):
+            tokens = set(tokens)
         for token in tokens:
             vec[token] = 1
         return cls(cls.Type.THREE_DIFFERENT, vec)
@@ -130,7 +133,6 @@ class BuyCardAction:
         def to_json(self) -> int:
             return self.idx
 
-
     source_type: SourceType
     location: Union[RevealedCardLocation, ReservedCardLocation]
     uses: ColorVec
@@ -139,7 +141,7 @@ class BuyCardAction:
         self,
         source_type: SourceType,
         location: Union[RevealedCardLocation, ReservedCardLocation],
-        uses: ColorVec
+        uses: ColorVec,
     ):
         self.source_type = source_type
         self.location = location
@@ -199,6 +201,6 @@ class SelectNoblesAction:
     def __init__(self, idx: int):
         assert 0 <= idx < 5
         self.idx = idx
-    
+
     def to_json(self) -> int:
         return self.idx

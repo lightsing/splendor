@@ -10,6 +10,7 @@ from websockets.exceptions import ConnectionClosedError
 from .types.snapshot import GameSnapshot
 from .types.actions import PlayerAction, DropTokensAction, SelectNoblesAction
 
+
 class PlayerActor(ABC):
     @abstractmethod
     def get_action(self, snapshot: GameSnapshot) -> PlayerAction: ...
@@ -26,12 +27,17 @@ class WebsocketPlayerActor:
     ws_client: ClientConnection
     actor: PlayerActor
 
-    def __init__(self, actor: PlayerActor, rpc: Optional[str]=None, secret: Optional[str]=None):
+    def __init__(
+        self,
+        actor: PlayerActor,
+        rpc: Optional[str] = None,
+        secret: Optional[str] = None,
+    ):
         if rpc is None:
             rpc = environ["RPC_URL"]
         if secret is None:
             secret = open(environ["CLIENT_SECRET"]).read()
-        
+
         ws_client = connect(rpc)
         ws_client.send(secret)
 

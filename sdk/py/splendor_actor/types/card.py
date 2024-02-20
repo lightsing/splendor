@@ -78,6 +78,15 @@ class CardView:
         else:
             self.view = Tier(view)
 
+    def unwrap_card(self) -> Card:
+        """
+        unwrap the card if it is visible
+        """
+        if self.type == ReservedCardType.Visible:
+            return self.view
+        else:
+            raise ValueError("This card is invisible")
+
 
 class DevelopmentCards:
     """
