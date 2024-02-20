@@ -25,13 +25,15 @@ class TakeTokenAction:
     represent the action of taking tokens
     """
 
-    tokens: ColorVec
-
     class Type(Enum):
         THREE_DIFFERENT = "three_different"
         TWO_SAME = "two_same"
 
+    _type: Type
+    tokens: ColorVec
+
     def __init__(self, _type: Type, tokens: ColorVec):
+        self._type = _type
         self.tokens = tokens
 
     @classmethod
@@ -40,10 +42,10 @@ class TakeTokenAction:
         create a TakeTokenAction with at most three different tokens
         """
         assert len(tokens) <= 3
-        tokens = ColorVec.empty()
-        for token in self.tokens:
-            tokens[token] = 1
-        return cls(cls.Type.THREE_DIFFERENT, tokens)
+        vec = ColorVec.empty()
+        for token in tokens:
+            vec[token] = 1
+        return cls(cls.Type.THREE_DIFFERENT, vec)
 
     @classmethod
     def two_same(cls, token: Color):
@@ -57,7 +59,7 @@ class TakeTokenAction:
     def to_json(self) -> Dict:
         return {
             "type": "take_tokens",
-            "action": {"type": self._type.value, "tokens": tokens.to_json()},
+            "action": {"type": self._type.value, "tokens": self.tokens.to_json()},
         }
 
 
@@ -77,7 +79,7 @@ class ReserveCardAction:
         """
         assert 0 <= idx < 4
 
-        return cls(Tier.REVEALED, idx)
+        return cls(tier, idx)
 
     @classmethod
     def from_pool(cls, tier: Tier):
@@ -126,7 +128,7 @@ class BuyCardAction:
             self.idx = idx
 
         def to_json(self) -> int:
-            return idx
+            return self.idx
 
 
     source_type: SourceType
@@ -150,7 +152,7 @@ class BuyCardAction:
         """
         assert 0 <= idx < 4
 
-        return cls(cls.SourceType.REVEALED, cls.RevealedCardLocation(tier, idx))
+        return cls(cls.SourceType.REVEALED, cls.RevealedCardLocation(tier, idx), uses)
 
     @classmethod
     def from_reserved(cls, idx: int, uses: ColorVec):
@@ -158,7 +160,7 @@ class BuyCardAction:
         create a BuyCardAction from the reserved cards
         """
         assert 0 <= idx < 3
-        return cls(cls.SourceType.RESERVED, cls.ReservedCardLocation(idx))
+        return cls(cls.SourceType.RESERVED, cls.ReservedCardLocation(idx), uses)
 
     def to_json(self) -> Dict:
         return {

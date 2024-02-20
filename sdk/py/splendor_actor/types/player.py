@@ -33,7 +33,7 @@ class Player:
         self.reserved_cards = [CardView(**card) for card in reserved_cards]
         self.nobles = [Noble(**noble) for noble in nobles]
 
-    def can_buy(card: Card) -> Optional[ColorVec]:
+    def can_buy(self, card: Card) -> Optional[ColorVec]:
         """
         check if the player can buy the card, return the tokens needed if possible
         """

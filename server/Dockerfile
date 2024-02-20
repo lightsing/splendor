@@ -1,11 +1,10 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1.76-slim-bookworm as chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.76-bookworm as chef
 
 RUN mkdir ~/.cargo
 COPY .cargo-rsproxy.toml ~/.cargo/config.toml
-
-[net]
-git-fetch-with-cli = true
-EOF > ~/.cargo/config
+RUN apt-get update && apt-get install -y python3 python3-pip
+RUN pip3 install --break-system-packages ziglang
+RUN cargo install cargo-zigbuild
 
 WORKDIR /app
 
@@ -16,12 +15,16 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 # Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --release --recipe-path recipe.json
+RUN cargo chef cook --zigbuild --release --recipe-path recipe.json
 # Build application
 COPY . .
-RUN cargo build --release -p splendor-server
+RUN cargo zigbuild --release -p splendor-server
 
 FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update && apt-get install -y libc6 && rm -rf /var/lib/apt/lists/*
+
+FROM runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/splendor-server /app/splendor-server
 ENV RUST_LOG=info

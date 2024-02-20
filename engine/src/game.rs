@@ -77,7 +77,7 @@ impl GameContext {
             .get_action(snapshot)
             .await?;
         action.is_valid(self)?;
-        trace!("Player#{} action: {:?}", self.current_player, action);
+        info!("Player#{} action: {:?}", self.current_player, action);
         action.apply(self);
         self.records.push(Record::PlayerAction(ActionRecord::new(
             self.current_player,
@@ -88,16 +88,15 @@ impl GameContext {
         }
 
         if self.players[self.current_player].tokens.total() > 10 {
-            trace!("Player#{} needs to drop tokens", self.current_player);
+            info!("Player#{} needs to drop tokens", self.current_player);
             let snapshot = self.snapshot();
             let drop_tokens = self.player_actors[self.current_player]
                 .drop_tokens(snapshot)
                 .await?;
             drop_tokens.is_valid(self)?;
-            trace!(
+            info!(
                 "Player#{} dropped tokens: {:?}",
-                self.current_player,
-                drop_tokens
+                self.current_player, drop_tokens
             );
             drop_tokens.apply(self);
             self.records.push(Record::DropTokens(ActionRecord::new(
@@ -116,7 +115,7 @@ impl GameContext {
             })
             .collect();
         if !noble_visits.is_empty() {
-            trace!("Player#{} can visit nobles", self.current_player);
+            info!("Player#{} can visit nobles", self.current_player);
             let (action, noble) = if noble_visits.len() > 1 {
                 let snapshot = self.snapshot();
                 let select_noble = self.player_actors[self.current_player]
@@ -128,7 +127,7 @@ impl GameContext {
                 (SelectNoblesAction(noble_visits[0].0), noble_visits[0].1)
             };
             debug_assert!(action.is_valid(self).is_ok());
-            trace!("Player#{} visited noble: {:?}", self.current_player, noble);
+            info!("Player#{} visited noble: {:?}", self.current_player, noble);
             action.apply(self);
             self.records.push(Record::VisitNoble(ActionRecord::new(
                 self.current_player,
@@ -136,13 +135,13 @@ impl GameContext {
             )));
         }
 
-        trace!(
+        info!(
             "Player#{} ended turn, current points: {}",
             self.current_player,
             self.players[self.current_player].points()
         );
         if self.players[self.current_player].points() >= 15 {
-            trace!(
+            info!(
                 "Player#{} reached 15 points, this is the last turn",
                 self.current_player
             );
@@ -150,7 +149,7 @@ impl GameContext {
         }
 
         if self.last_round && self.current_player == self.n_players - 1 {
-            trace!("Game ended");
+            info!("Game ended");
             self.game_end = true;
             return Ok(Some(self.get_winner()));
         }
@@ -160,7 +159,8 @@ impl GameContext {
             trace!("Round {} ended", self.current_round);
             if self.nop_count == self.n_players {
                 self.pretty_print();
-                panic!("All players did nothing, game stuck, {:#?}", self);
+                //panic!("All players did nothing, game stuck, {:#?}", self);
+                std::process::exit(1);
             }
             self.nop_count = 0;
             self.current_round += 1;

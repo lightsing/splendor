@@ -71,6 +71,24 @@ class ColorVec:
         else:
             self.vec[index.value] = value
     
+    def __lt__(self, other):
+        return self.vec < other.vec
+    
+    def __le__(self, other):
+        return self.vec <= other.vec
+    
+    def __gt__(self, other):
+        return self.vec > other.vec
+    
+    def __ge__(self, other):
+        return self.vec >= other.vec
+    
+    def __eq__(self, other):
+        return self.vec == other.vec
+    
+    def __ne__(self, other):
+        return self.vec != other.vec
+    
     def __iter__(self):
         return ((Color(color), count) for color, count in enumerate(self.vec))
     

@@ -703,7 +703,7 @@ dependencies = [
 
 [[package]]
 name = "splendor-core"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "async-trait",
  "log",
@@ -718,7 +718,7 @@ dependencies = [
 
 [[package]]
 name = "splendor-engine"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "ctor",
  "log",
@@ -735,7 +735,7 @@ dependencies = [
 
 [[package]]
 name = "splendor-server"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -756,7 +756,7 @@ dependencies = [
 
 [[package]]
 name = "splendor-ws"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 dependencies = [
  "tokio-tungstenite",
 ]

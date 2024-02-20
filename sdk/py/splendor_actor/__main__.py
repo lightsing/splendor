@@ -14,13 +14,13 @@ class RandomActor(PlayerActor):
         possible_actions = []
 
         # take 3 different tokens if possible
-        tokens = [color for color, count in current_player.tokens if count > 0][:-1]
+        tokens = [color for color, count in snapshot.tokens if count > 0][:-1]
         self.rng.shuffle(tokens)
         if tokens:
             possible_actions.append(TakeTokenAction.three_different(tokens[:3]))
         
         # take 2 same tokens if possible
-        tokens = [color for color, count in current_player.tokens if count > 3][:-1]
+        tokens = [color for color, count in snapshot.tokens if count > 3][:-1]
         if tokens:
             possible_actions.append(TakeTokenAction.two_same(self.rng.choice(tokens)))
         
@@ -28,7 +28,7 @@ class RandomActor(PlayerActor):
         if len(current_player.reserved_cards) < 3:
             possible_cards = []
             for cards in snapshot.card_pool.revealed:
-                for idx, card in enumerate(card):
+                for idx, card in enumerate(cards):
                     possible_cards.append(ReserveCardAction.from_revealed(card.tier, idx))
             for idx, cnt in enumerate(snapshot.card_pool.remaining):
                 if cnt > 0:
@@ -39,10 +39,10 @@ class RandomActor(PlayerActor):
         # buy a card if possible
         possible_cards = []
         for cards in snapshot.card_pool.revealed:
-            for idx, card in enumerate(card):
+            for idx, card in enumerate(cards):
                 if uses := current_player.can_buy(card):
                     possible_cards.append(BuyCardAction.from_revealed(card.tier, idx, uses))
-        for idx, card in current_player.reserved_cards:
+        for idx, card in enumerate(current_player.reserved_cards):
             if uses := current_player.can_buy(card.view):
                 possible_cards.append(BuyCardAction.from_reserved(idx, uses))
         if possible_cards:
@@ -77,4 +77,4 @@ class RandomActor(PlayerActor):
 
 
 if __name__ == "__main__":
-    WebsocketPlayerActor(RandomActor(42)).run()
+    WebsocketPlayerActor(RandomActor(None)).run()

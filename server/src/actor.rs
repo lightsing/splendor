@@ -8,6 +8,7 @@ use splendor_core::{
 use tokio::net::TcpStream;
 use tokio_tungstenite::{tungstenite, WebSocketStream};
 
+#[derive(Debug)]
 pub struct WebSocketActor {
     stream: WebSocketStream<TcpStream>,
 }

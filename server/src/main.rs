@@ -58,7 +58,10 @@ fn gen_secrets(n: usize) -> &'static [String] {
 async fn write_secrets(secrets: &[String]) -> anyhow::Result<()> {
     let path = env::var("SECRETS_PATH")?;
     for (idx, secret) in secrets.iter().enumerate() {
-        tokio::fs::write(format!("{}/player{}", path, idx), secret).await?;
+        let dir = format!("{}/player{}", path, idx);
+        tokio::fs::create_dir_all(&dir).await?;
+        tokio::fs::write(format!("{}/secret", dir), secret).await?;
+        info!("Player#{} secret written to: {}/secret", idx, dir);
     }
     Ok(())
 }
