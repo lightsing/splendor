@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/gorilla/websocket"
-	"github.com/lightsing/splendor/sdk/go/types"
+	"github.com/lightsing/splendor/sdk/go/pkg/types"
 )
 
 type PlayerActor interface {

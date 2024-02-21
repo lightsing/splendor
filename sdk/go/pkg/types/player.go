@@ -10,15 +10,15 @@ type Player struct {
 }
 
 // check if the player can buy the card, return the tokens needed if possible
-func (p *Player) CanBuy(card *Card) (bool, *ColorVec) {
+func (p *Player) CanBuy(card *Card) (bool, ColorVec) {
 	effective_cost := card.Requires
 	effective_cost.SaturatingSub(&p.DevelopmentCards.Bonus)
 	diff := effective_cost
 	diff.SaturatingSub(&p.Tokens)
 	if diff.Total() > p.Tokens[YELLOW] {
-		return false, nil
+		return false, ColorVec{}
 	}
 	effective_cost.Sub(&diff)
 	effective_cost[YELLOW] = diff.Total()
-	return true, &effective_cost
+	return true, effective_cost
 }

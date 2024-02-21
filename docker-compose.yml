@@ -29,7 +29,6 @@ services:
       - server
     environment:
       - RPC_URL=ws://server:8080
-      - PLAYER_IDX=0
     volumes:
       - type: volume
         source: secrets0
@@ -47,7 +46,6 @@ services:
       - server
     environment:
       - RPC_URL=ws://server:8080
-      - PLAYER_IDX=1
     volumes:
       - type: volume
         source: secrets1
@@ -58,14 +56,13 @@ services:
     networks:
       - player1_net
   player2:
-    build: ./sdk/py
+    build: ./sdk/go
     depends_on:
       - server
     links:
       - server
     environment:
       - RPC_URL=ws://server:8080
-      - PLAYER_IDX=2
     volumes:
       - type: volume
         source: secrets2
@@ -76,14 +73,13 @@ services:
     networks:
       - player2_net
   player3:
-    build: ./sdk/py
+    build: ./sdk/go
     depends_on:
       - server
     links:
       - server
     environment:
       - RPC_URL=ws://server:8080
-      - PLAYER_IDX=3
     volumes:
       - type: volume
         source: secrets3
