@@ -2,15 +2,15 @@
 
 ## Available Languages
 
-|        Language       |           SDK          | Status |
-|:---------------------:|:----------------------:|:------:|
-|          Rust         |     Native support     |   🟢 ✅  |
-|         Python        |     [sdk/py](./py)     |   🟢 ✅  |
-| Golang                | [sdk/go](./go)         |   🟢 🔧  |
-| C++                   | [sdk/cxx](./cxx)       |   🟡 📅  |
-| Java/Kotlin           | [sdk/jvm](./jvm)       |   🟡 📅  |
-| JavaScript/TypeScript | [sdk/js](./js)         |   🟡 📅  |
-| C#                    | [sdk/csharp](./csharp) |   🔴 📅  |
+| Language              | SDK                    | Status | Maintainer  |
+|-----------------------|------------------------|--------|-------------|
+| Rust                  | Native support         | 🟢 ✅    | @lightsing  |
+| Python                | [sdk/py](./py)         | 🟢 ✅    | @lightsing  |
+| Golang                | [sdk/go](./go)         | 🟢 🔧    | @lightsing  |
+| C++                   | [sdk/cxx](./cxx)       | 🟡 📅    | @Ray-Eldath |
+| Java/Kotlin           | [sdk/jvm](./jvm)       | 🟡 📅    | @sorz       |
+| JavaScript/TypeScript | [sdk/js](./js)         | 🟡 📅    | @Almsev     |
+| C#                    | [sdk/csharp](./csharp) | 🔴 📅    | N/A         |
 
 
 - 🟢: Maintained by core maintainers
