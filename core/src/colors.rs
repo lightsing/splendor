@@ -51,6 +51,20 @@ impl Color {
 }
 
 /// A struct to represent the color combinations.
+///
+/// ## Note
+/// When Compare two color vectors:
+/// A color vector is:
+///   - lt, iff all its colors are less than the other.
+///   - le, iff all its colors are less than or equal to the other.
+///   - eq, iff all its colors are equal to the other.
+///   - gt, iff all its colors are greater than the other.
+///   - ge, iff all its colors are greater than or equal to the other.
+/// Otherwise, it is not comparable.
+///
+/// Hence, the color vector cannot impl `PartialOrd` and `Ord`, following stmts are false:
+///   - `a <= b` iff `a < b || a == b`
+///   - `a >= b` iff `a > b || a == b`
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ColorVec([u8; 6]);
 
@@ -112,20 +126,25 @@ impl ColorVec {
         }
         res
     }
-}
 
-impl PartialOrd for ColorVec {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
+    /// Check if the color vector is less than the other.
+    pub fn lt(&self, rhs: &Self) -> bool {
+        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| a < b)
     }
-}
 
-impl Ord for ColorVec {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.0
-            .iter()
-            .zip(other.0.iter())
-            .fold(std::cmp::Ordering::Equal, |acc, (a, b)| acc.then(a.cmp(b)))
+    /// Check if the color vector is less than or equal to the other.
+    pub fn le(&self, rhs: &Self) -> bool {
+        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| a <= b)
+    }
+
+    /// Check if the color vector is greater than the other.
+    pub fn gt(&self, rhs: &Self) -> bool {
+        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| a > b)
+    }
+
+    /// Check if the color vector is greater than or equal to the other.
+    pub fn ge(&self, rhs: &Self) -> bool {
+        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| a >= b)
     }
 }
 

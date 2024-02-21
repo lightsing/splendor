@@ -8,7 +8,7 @@ type buyCardSourceType string
 
 const (
 	nopAction         playerActionType = "nop"
-	takeTokenAction   playerActionType = "take_token"
+	takeTokenAction   playerActionType = "take_tokens"
 	reserveCardAction playerActionType = "reserve_card"
 	buyCardAction     playerActionType = "buy_card"
 
@@ -21,17 +21,7 @@ const (
 
 type PlayerAction interface {
 	GetType() playerActionType
-}
-
-func MarshalPlayerAction(a PlayerAction) ([]byte, error) {
-	marshal := struct {
-		Type   playerActionType `json:"type"`
-		Action interface{}      `json:"action"`
-	}{
-		Type:   a.GetType(),
-		Action: a,
-	}
-	return json.Marshal(marshal)
+	MarshalJSON() ([]byte, error)
 }
 
 type NopAction struct{}
@@ -40,13 +30,39 @@ func (a NopAction) GetType() playerActionType {
 	return nopAction
 }
 
+func (a NopAction) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type playerActionType `json:"type"`
+	}{
+		Type: nopAction,
+	})
+}
+
 type TakeTokenAction struct {
-	Type   takeTokenActionType `json:"type"`
-	Tokens ColorVec            `json:"tokens"`
+	Type   takeTokenActionType
+	Tokens ColorVec
 }
 
 func (a TakeTokenAction) GetType() playerActionType {
 	return takeTokenAction
+}
+
+func (a TakeTokenAction) MarshalJSON() ([]byte, error) {
+	action := struct {
+		Type   takeTokenActionType `json:"type"`
+		Tokens ColorVec            `json:"tokens"`
+	}{
+		Type:   a.Type,
+		Tokens: a.Tokens,
+	}
+	marshal := struct {
+		Type   playerActionType `json:"type"`
+		Action interface{}      `json:"action"`
+	}{
+		Type:   takeTokenAction,
+		Action: action,
+	}
+	return json.Marshal(marshal)
 }
 
 // create a TakeTokenAction with at most three different tokens
@@ -72,12 +88,30 @@ func NewTakeTwoSameTokenAction(token Color) TakeTokenAction {
 }
 
 type ReserveCardAction struct {
-	Tier Tier   `json:"tier"`
-	Idx  *uint8 `json:"idx"`
+	Tier Tier
+	Idx  *uint8
 }
 
 func (a ReserveCardAction) GetType() playerActionType {
 	return reserveCardAction
+}
+
+func (a ReserveCardAction) MarshalJSON() ([]byte, error) {
+	action := struct {
+		Tier Tier   `json:"tier"`
+		Idx  *uint8 `json:"idx"`
+	}{
+		Tier: a.Tier,
+		Idx:  a.Idx,
+	}
+	marshal := struct {
+		Type   playerActionType `json:"type"`
+		Action interface{}      `json:"action"`
+	}{
+		Type:   reserveCardAction,
+		Action: action,
+	}
+	return json.Marshal(marshal)
 }
 
 // create a ReserveCardAction from the revealed cards
@@ -108,6 +142,24 @@ type BuyCardAction struct {
 
 func (a BuyCardAction) GetType() playerActionType {
 	return buyCardAction
+}
+
+func (a BuyCardAction) MarshalJSON() ([]byte, error) {
+	action := struct {
+		Source buyCardActionSource `json:"source"`
+		Uses   ColorVec            `json:"uses"`
+	}{
+		Source: a.Source,
+		Uses:   a.Uses,
+	}
+	marshal := struct {
+		Type   playerActionType `json:"type"`
+		Action interface{}      `json:"action"`
+	}{
+		Type:   buyCardAction,
+		Action: action,
+	}
+	return json.Marshal(marshal)
 }
 
 // create a BuyCardAction from the revealed cards

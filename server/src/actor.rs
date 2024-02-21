@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::error::ClientError;
 use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
@@ -6,16 +8,24 @@ use splendor_core::{
     PlayerActor, SelectNoblesAction,
 };
 use tokio::net::TcpStream;
-use tokio_tungstenite::{tungstenite, WebSocketStream};
+use tokio_tungstenite::{
+    tungstenite::{
+        self,
+        protocol::{frame::coding::CloseCode, CloseFrame},
+    },
+    WebSocketStream,
+};
 
 #[derive(Debug)]
 pub struct WebSocketActor {
-    stream: WebSocketStream<TcpStream>,
+    stream: Option<WebSocketStream<TcpStream>>,
 }
 
 impl WebSocketActor {
     pub fn new(stream: WebSocketStream<TcpStream>) -> Self {
-        Self { stream }
+        Self {
+            stream: Some(stream),
+        }
     }
 
     async fn get_result<T>(
@@ -28,9 +38,9 @@ impl WebSocketActor {
     {
         let req = ActionRequest { ty, snapshot };
         let req = tungstenite::Message::Text(serde_json::to_string(&req)?);
-        self.stream.send(req).await?;
-        let res = self
-            .stream
+        let stream = self.stream.as_mut().unwrap();
+        stream.send(req).await?;
+        let res = stream
             .next()
             .await
             .ok_or(ClientError::UnexpectedEOF)??
@@ -67,5 +77,20 @@ impl PlayerActor for WebSocketActor {
             .get_result::<SelectNoblesAction>(ActionType::SelectNoble, snapshot)
             .await?;
         Ok(res)
+    }
+}
+
+impl Drop for WebSocketActor {
+    fn drop(&mut self) {
+        let mut stream = self.stream.take().unwrap();
+
+        tokio::spawn(async move {
+            stream
+                .close(Some(CloseFrame {
+                    code: CloseCode::Normal,
+                    reason: Cow::Borrowed("shutdown"),
+                }))
+                .await
+        });
     }
 }

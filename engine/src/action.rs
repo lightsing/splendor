@@ -40,7 +40,7 @@ impl ActionExt for DropTokensAction {
         )?;
         self.require(
             ctx,
-            self.0 <= ctx.players[ctx.current_player].tokens,
+            self.0.le(&ctx.players[ctx.current_player].tokens),
             "not enough tokens to drop",
         )
     }
@@ -60,7 +60,7 @@ impl ActionExt for SelectNoblesAction {
         let player = &ctx.players[ctx.current_player];
         self.require(
             ctx,
-            noble.requires <= player.development_cards.bonus,
+            noble.requires.le(&player.development_cards.bonus),
             "noble requirements not met",
         )
     }
@@ -101,7 +101,7 @@ impl ActionExt for TakeTokenAction {
         )?;
         self.require(
             ctx,
-            *self.tokens() <= ctx.tokens,
+            self.tokens().le(&ctx.tokens),
             "not enough tokens available",
         )?;
         match self {
@@ -156,7 +156,11 @@ impl ActionExt for BuyCardAction {
         self.require(ctx, card.is_some(), "card index out of range")?;
         let card = card.unwrap();
         // Check if the player has enough tokens.
-        self.require(ctx, player.tokens >= self.uses, "not enough tokens to use")?;
+        self.require(
+            ctx,
+            player.tokens.ge(&self.uses),
+            "not enough tokens to use",
+        )?;
         // Check use of tokens matches the card.
         let available = player.development_cards.bonus + self.uses;
         let diff = available

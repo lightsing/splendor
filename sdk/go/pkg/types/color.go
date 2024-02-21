@@ -84,7 +84,7 @@ func (cv *ColorVec) SaturatingSub(other *ColorVec) {
 
 func (cv *ColorVec) LessThan(other *ColorVec) bool {
 	for i := 0; i < 6; i++ {
-		if cv[i] > other[i] {
+		if cv[i] >= other[i] {
 			return false
 		}
 	}
@@ -93,7 +93,7 @@ func (cv *ColorVec) LessThan(other *ColorVec) bool {
 
 func (cv *ColorVec) LessThanOrEqual(other *ColorVec) bool {
 	for i := 0; i < 6; i++ {
-		if cv[i] >= other[i] {
+		if cv[i] > other[i] {
 			return false
 		}
 	}
@@ -102,7 +102,7 @@ func (cv *ColorVec) LessThanOrEqual(other *ColorVec) bool {
 
 func (cv *ColorVec) GreaterThan(other *ColorVec) bool {
 	for i := 0; i < 6; i++ {
-		if cv[i] < other[i] {
+		if cv[i] <= other[i] {
 			return false
 		}
 	}
@@ -111,7 +111,7 @@ func (cv *ColorVec) GreaterThan(other *ColorVec) bool {
 
 func (cv *ColorVec) GreaterThanOrEqual(other *ColorVec) bool {
 	for i := 0; i < 6; i++ {
-		if cv[i] <= other[i] {
+		if cv[i] < other[i] {
 			return false
 		}
 	}

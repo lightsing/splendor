@@ -5,9 +5,9 @@ use tokio_tungstenite::tungstenite;
 pub enum ClientError {
     #[error("unexpected EOF while reading message")]
     UnexpectedEOF,
-    #[error("invalid message")]
+    #[error("invalid message: {0}")]
     InvalidMessage(#[from] tungstenite::Error),
-    #[error("invalid json")]
+    #[error("invalid json: {0}")]
     InvalidJson(#[from] serde_json::Error),
 }
 

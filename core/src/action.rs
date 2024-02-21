@@ -159,6 +159,12 @@ mod tests {
             serialized,
             r#"{"type":"reserve_card","action":{"tier":0,"idx":null}}"#
         );
+
+        let action = PlayerAction::Nop;
+        let serialized = serde_json::to_string(&action).unwrap();
+        assert_eq!(serialized, r#"{"type":"nop"}"#);
+        let deserialized: PlayerAction = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, action);
     }
 
     #[test]

@@ -111,11 +111,17 @@ impl GameContext {
             .copied()
             .enumerate()
             .filter(|(_, n)| {
-                n.requires <= self.players[self.current_player].development_cards.bonus
+                n.requires
+                    .le(&self.players[self.current_player].development_cards.bonus)
             })
             .collect();
         if !noble_visits.is_empty() {
-            info!("Player#{} can visit nobles", self.current_player);
+            info!(
+                "Player#{}({:?}) can visit nobles: {:?}",
+                self.current_player,
+                self.players[self.current_player].development_cards.bonus,
+                noble_visits
+            );
             let (action, noble) = if noble_visits.len() > 1 {
                 let snapshot = self.snapshot();
                 let select_noble = self.player_actors[self.current_player]

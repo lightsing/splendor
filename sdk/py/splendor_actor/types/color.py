@@ -78,13 +78,13 @@ class ColorVec:
         return self.vec < other.vec
 
     def __le__(self, other):
-        return self.vec <= other.vec
+        return all(a <= b for a, b in zip(self.vec, other.vec))
 
     def __gt__(self, other):
-        return self.vec > other.vec
+        return all(a > b for a, b in zip(self.vec, other.vec))
 
     def __ge__(self, other):
-        return self.vec >= other.vec
+        return all(a >= b for a, b in zip(self.vec, other.vec))
 
     def __eq__(self, other):
         return self.vec == other.vec

@@ -6,7 +6,7 @@
 |-----------------------|------------------------|--------|-------------|
 | Rust                  | Native support         | 🟢 ✅    | @lightsing  |
 | Python                | [sdk/py](./py)         | 🟢 ✅    | @lightsing  |
-| Golang                | [sdk/go](./go)         | 🟢 🔧    | @lightsing  |
+| Golang                | [sdk/go](./go)         | 🟢 ✅    | @lightsing  |
 | C++                   | [sdk/cxx](./cxx)       | 🟡 📅    | @Ray-Eldath |
 | Java/Kotlin           | [sdk/jvm](./jvm)       | 🟡 📅    | @sorz       |
 | JavaScript/TypeScript | [sdk/js](./js)         | 🟡 📅    | @Almsev     |

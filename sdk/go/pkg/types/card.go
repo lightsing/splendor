@@ -1,5 +1,11 @@
 package types
 
+import (
+	"encoding/json"
+
+	log "github.com/sirupsen/logrus"
+)
+
 type Card struct {
 	Tier     Tier     `json:"tier"`
 	Color    Color    `json:"color"`
@@ -24,9 +30,13 @@ type CardView struct {
 
 func (c *CardView) UnwrapCard() Card {
 	if c.Type == VISIBLE_RESERVED_CARD {
-		return c.View.(Card)
+		cardMashal, _ := json.Marshal(c.View)
+		var card Card
+		json.Unmarshal(cardMashal, &card)
+		return card
 	}
-	panic("cannot unwrap invisible card")
+	log.Panic("cannot unwrap invisible card")
+	return Card{} // unreachable
 }
 
 type DevelopmentCards struct {

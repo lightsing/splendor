@@ -5,7 +5,7 @@ from os import environ
 from typing import Optional
 
 from websockets.sync.client import connect, ClientConnection
-from websockets.exceptions import ConnectionClosedError
+from websockets.exceptions import ConnectionClosedOK
 
 from .types.snapshot import GameSnapshot
 from .types.actions import PlayerAction, DropTokensAction, SelectNoblesAction
@@ -60,7 +60,7 @@ class WebsocketPlayerActor:
                 else:
                     raise ValueError(f"Invalid request type: {req_type}")
                 self.ws_client.send(json.dumps(action.to_json()))
-        except (ConnectionClosedError, KeyboardInterrupt):
+        except (ConnectionClosedOK, KeyboardInterrupt):
             pass
         finally:
             self.ws_client.close()

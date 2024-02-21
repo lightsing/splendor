@@ -23,7 +23,7 @@ func NewRandomActorSeeded(seed int64) *RandomActor {
 	}
 }
 
-func (a *RandomActor) GetAction(snapshot types.GameSnapshot) types.PlayerAction {
+func (a *RandomActor) GetAction(snapshot *types.GameSnapshot) types.PlayerAction {
 	currentPlayer := snapshot.Players[snapshot.CurrentPlayer]
 	possibleActions := make([]types.PlayerAction, 0, 4)
 
@@ -130,7 +130,7 @@ func (a *RandomActor) GetAction(snapshot types.GameSnapshot) types.PlayerAction 
 	return types.NopAction{}
 }
 
-func (a *RandomActor) DropTokens(snapshot types.GameSnapshot) types.ColorVec {
+func (a *RandomActor) DropTokens(snapshot *types.GameSnapshot) types.ColorVec {
 	currentPlayer := snapshot.Players[snapshot.CurrentPlayer]
 	tokens := currentPlayer.Tokens
 	if tokens.Total() <= 10 {
@@ -153,11 +153,11 @@ func (a *RandomActor) DropTokens(snapshot types.GameSnapshot) types.ColorVec {
 	return drops
 }
 
-func (a *RandomActor) SelectNoble(snapshot types.GameSnapshot) uint8 {
+func (a *RandomActor) SelectNoble(snapshot *types.GameSnapshot) uint8 {
 	currentPlayer := snapshot.Players[snapshot.CurrentPlayer]
 	possibleNobles := make([]uint8, 0, len(snapshot.Nobles))
 	for i := 0; i < len(snapshot.Nobles); i++ {
-		noble := snapshot.Nobles[i]
+		noble := &snapshot.Nobles[i]
 		if currentPlayer.DevelopmentCards.Bonus.GreaterThanOrEqual(&noble.Requires) {
 			possibleNobles = append(possibleNobles, uint8(i))
 		}
