@@ -51,6 +51,15 @@ class Color(Enum):
 class ColorVec:
     """
     represent the color combinations
+
+    Note: when comparing two ColorVecs a, b, the order is defined as:
+    - a < b iff \\forall i, a[i] <= b[i] and \\exists j, a[j] < b[j]
+    - a <= b iff \\forall i, a[i] <= b[i]
+    - a > b iff \\forall i, a[i] >= b[i] and \\exists j, a[j] > b[j]
+    - a >= b iff \\forall i, a[i] >= b[i]
+    - otherwise a and b are not comparable
+
+    Also the equality is trivially defined as the equality of the vectors.
     """
 
     vec: List[int]
@@ -75,13 +84,13 @@ class ColorVec:
             self.vec[index.value] = value
 
     def __lt__(self, other):
-        return self.vec < other.vec
+        return all(a < b for a, b in zip(self.vec, other.vec)) and any(a < b for a, b in zip(self.vec, other.vec))
 
     def __le__(self, other):
         return all(a <= b for a, b in zip(self.vec, other.vec))
 
     def __gt__(self, other):
-        return all(a > b for a, b in zip(self.vec, other.vec))
+        return all(a >= b for a, b in zip(self.vec, other.vec)) and any(a > b for a, b in zip(self.vec, other.vec))
 
     def __ge__(self, other):
         return all(a >= b for a, b in zip(self.vec, other.vec))

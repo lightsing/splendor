@@ -53,25 +53,37 @@ func (c *Color) UnmarshalJSON(data []byte) error {
 	return ErrInvalidColor
 }
 
-// ColorVec represent the color combinations
+// ColorVec represent the color combinations.
+//
+// Note: when comparing two ColorVecs a, b, the order is defined as:
+// - a < b iff \forall i, a[i] <= b[i] and \exists j, a[j] < b[j]
+// - a <= b iff \forall i, a[i] <= b[i]
+// - a > b iff \forall i, a[i] >= b[i] and \exists j, a[j] > b[j]
+// - a >= b iff \forall i, a[i] >= b[i]
+// - otherwise a and b are not comparable
+//
+// Also the equality is trivially defined as the equality of the vectors.
 type ColorVec [6]uint8
 
 func NewColorVec() *ColorVec {
 	return &ColorVec{}
 }
 
+// Add adds other to cv
 func (cv *ColorVec) Add(other *ColorVec) {
 	for i := 0; i < 6; i++ {
 		cv[i] += other[i]
 	}
 }
 
+// Sub subtracts other from cv
 func (cv *ColorVec) Sub(other *ColorVec) {
 	for i := 0; i < 6; i++ {
 		cv[i] -= other[i]
 	}
 }
 
+// SaturatingSub subtracts other from cv, but never goes below 0
 func (cv *ColorVec) SaturatingSub(other *ColorVec) {
 	for i := 0; i < 6; i++ {
 		if cv[i] < other[i] {
@@ -82,15 +94,21 @@ func (cv *ColorVec) SaturatingSub(other *ColorVec) {
 	}
 }
 
+// LessThan returns true if cv < other,
+// i.e. \forall i, cv[i] <= other[i] and \exists j, cv[j] < other[j]
 func (cv *ColorVec) LessThan(other *ColorVec) bool {
+	le, lt := true, false
 	for i := 0; i < 6; i++ {
-		if cv[i] >= other[i] {
-			return false
-		}
+		// \forall i, cv[i] <= other[i]
+		le = le && cv[i] <= other[i]
+		// \exists j, cv[j] < other[j]
+		lt = lt || cv[i] < other[i]
 	}
-	return true
+	return le && lt
 }
 
+// LessThanOrEqual returns true if cv <= other,
+// i.e. \forall i, cv[i] <= other[i]
 func (cv *ColorVec) LessThanOrEqual(other *ColorVec) bool {
 	for i := 0; i < 6; i++ {
 		if cv[i] > other[i] {
@@ -100,15 +118,21 @@ func (cv *ColorVec) LessThanOrEqual(other *ColorVec) bool {
 	return true
 }
 
+// GreaterThan returns true if cv > other,
+// i.e. \forall i, cv[i] > other[i] and \exists j, cv[j] > other[j]
 func (cv *ColorVec) GreaterThan(other *ColorVec) bool {
+	ge, gt := true, false
 	for i := 0; i < 6; i++ {
-		if cv[i] <= other[i] {
-			return false
-		}
+		// \forall i, cv[i] > other[i]
+		ge = ge && cv[i] >= other[i]
+		// \exists j, cv[j] > other[j]
+		gt = gt || cv[i] > other[i]
 	}
-	return true
+	return ge && gt
 }
 
+// GreaterThanOrEqual returns true if cv >= other,
+// i.e. \forall i, cv[i] >= other[i]
 func (cv *ColorVec) GreaterThanOrEqual(other *ColorVec) bool {
 	for i := 0; i < 6; i++ {
 		if cv[i] < other[i] {
@@ -118,6 +142,7 @@ func (cv *ColorVec) GreaterThanOrEqual(other *ColorVec) bool {
 	return true
 }
 
+// Total returns the total number of tokens
 func (cv *ColorVec) Total() uint8 {
 	var total uint8
 	for i := 0; i < 6; i++ {

@@ -53,14 +53,14 @@ impl Color {
 /// A struct to represent the color combinations.
 ///
 /// ## Note
-/// When Compare two color vectors:
-/// A color vector is:
-///   - lt, iff all its colors are less than the other.
-///   - le, iff all its colors are less than or equal to the other.
-///   - eq, iff all its colors are equal to the other.
-///   - gt, iff all its colors are greater than the other.
-///   - ge, iff all its colors are greater than or equal to the other.
-/// Otherwise, it is not comparable.
+/// when comparing two ColorVecs a, b, the order is defined as:
+/// - a < b iff \forall i, a[i] <= b[i] and \exists j, a[j] < b[j]
+/// - a <= b iff \forall i, a[i] <= b[i]
+/// - a > b iff \forall i, a[i] >= b[i] and \exists j, a[j] > b[j]
+/// - a >= b iff \forall i, a[i] >= b[i]
+/// - otherwise a and b are not comparable
+///
+/// Also the equality is trivially defined as the equality of the vectors.
 ///
 /// Hence, the color vector cannot impl `PartialOrd` and `Ord`, following stmts are false:
 ///   - `a <= b` iff `a < b || a == b`
@@ -128,23 +128,31 @@ impl ColorVec {
     }
 
     /// Check if the color vector is less than the other.
+    ///
+    /// The order is defined as: \forall i, a[i] <= b[i] and \exists j, a[j] < b[j]
     pub fn lt(&self, rhs: &Self) -> bool {
-        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| a < b)
+        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| *a <= *b)
+            && self.0.iter().zip(rhs.0.iter()).any(|(a, b)| *a < *b)
     }
 
     /// Check if the color vector is less than or equal to the other.
+    ///
+    /// The order is defined as: \forall i, a[i] <= b[i]
     pub fn le(&self, rhs: &Self) -> bool {
-        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| a <= b)
+        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| *a <= *b)
     }
 
     /// Check if the color vector is greater than the other.
+    ///
+    /// The order is defined as: \forall i, a[i] >= b[i] and \exists j, a[j] > b[j]
     pub fn gt(&self, rhs: &Self) -> bool {
-        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| a > b)
+        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| *a >= *b)
+            && self.0.iter().zip(rhs.0.iter()).any(|(a, b)| *a > *b)
     }
 
     /// Check if the color vector is greater than or equal to the other.
     pub fn ge(&self, rhs: &Self) -> bool {
-        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| a >= b)
+        self.0.iter().zip(rhs.0.iter()).all(|(a, b)| *a >= *b)
     }
 }
 
