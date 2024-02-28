@@ -114,7 +114,7 @@ func (a ReserveCardAction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshal)
 }
 
-// create a ReserveCardAction from the revealed cards
+// NewReserveCardFromRevealedAction creates a ReserveCardAction from the revealed cards
 func NewReserveCardFromRevealedAction(tier Tier, idx uint8) ReserveCardAction {
 	return ReserveCardAction{
 		Tier: tier,
@@ -122,7 +122,7 @@ func NewReserveCardFromRevealedAction(tier Tier, idx uint8) ReserveCardAction {
 	}
 }
 
-// create a ReserveCardAction from the card pool
+// NewReserveCardFromPoolAction creates a ReserveCardAction from the card pool
 func NewReserveCardFromPoolAction(tier Tier) ReserveCardAction {
 	return ReserveCardAction{
 		Tier: tier,
@@ -162,7 +162,7 @@ func (a BuyCardAction) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshal)
 }
 
-// create a BuyCardAction from the revealed cards
+// NewBuyCardFromRevealedAction creates a BuyCardAction from the revealed cards
 func NewBuyCardFromRevealedAction(tier Tier, idx uint8, uses ColorVec) BuyCardAction {
 	return BuyCardAction{
 		Source: buyCardActionSource{
@@ -179,7 +179,7 @@ func NewBuyCardFromRevealedAction(tier Tier, idx uint8, uses ColorVec) BuyCardAc
 	}
 }
 
-// create a BuyCardAction from the reserved cards
+// NewBuyCardFromReservedAction creates a BuyCardAction from the reserved cards
 func NewBuyCardFromReservedAction(idx uint8, uses ColorVec) BuyCardAction {
 	return BuyCardAction{
 		Source: buyCardActionSource{
