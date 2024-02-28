@@ -1,0 +1,25 @@
+[package]
+name = "splendor-sdk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+futures-util.workspace = true
+log.workspace = true
+pretty_env_logger = { workspace = true, optional = true }
+rand = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
+splendor-core.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-tungstenite = "0.21"
+
+[features]
+example = ["splendor-core/naive_actors", "rand", "pretty_env_logger"]
+
+[[example]]
+name = "random_actor"
+required-features = ["example"]

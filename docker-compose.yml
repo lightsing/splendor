@@ -39,7 +39,9 @@ services:
     networks:
       - player0_net
   player1:
-    build: ./sdk/py
+    build:
+      context: .
+      dockerfile: ./sdk/rust/Dockerfile
     depends_on:
       - server
     links:

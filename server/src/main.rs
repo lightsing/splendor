@@ -9,7 +9,7 @@ use rand_chacha::ChaCha20Rng;
 use smallvec::SmallVec;
 use splendor_core::{PlayerActor, MAX_PLAYERS};
 use splendor_engine::GameContext;
-use std::{array, env};
+use std::env;
 use tokio::sync::mpsc::Sender;
 
 mod actor;

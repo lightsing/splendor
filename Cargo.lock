@@ -734,6 +734,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "splendor-sdk"
+version = "0.1.0-alpha.1"
+dependencies = [
+ "async-trait",
+ "futures-util",
+ "log",
+ "pretty_env_logger",
+ "rand",
+ "serde",
+ "serde_json",
+ "splendor-core",
+ "thiserror",
+ "tokio",
+ "tokio-tungstenite",
+]
+
+[[package]]
 name = "splendor-server"
 version = "0.1.0-alpha.1"
 dependencies = [
@@ -751,13 +768,6 @@ dependencies = [
  "splendor-engine",
  "thiserror",
  "tokio",
- "tokio-tungstenite",
-]
-
-[[package]]
-name = "splendor-ws"
-version = "0.1.0-alpha.1"
-dependencies = [
  "tokio-tungstenite",
 ]
 

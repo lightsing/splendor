@@ -4,7 +4,7 @@
 
 | Language              | SDK                    | Status | Maintainer  |
 |-----------------------|------------------------|--------|-------------|
-| Rust                  | Native support         | 🟢 ✅    | @lightsing  |
+| Rust                  | [sdk/rust](./rust)     | 🟢 ✅    | @lightsing  |
 | Python                | [sdk/py](./py)         | 🟢 ✅    | @lightsing  |
 | Golang                | [sdk/go](./go)         | 🟢 ✅    | @lightsing  |
 | C++                   | [sdk/cxx](./cxx)       | 🟡 📅    | @Ray-Eldath |

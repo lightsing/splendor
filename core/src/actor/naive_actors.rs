@@ -38,7 +38,7 @@ impl<R: RngCore + Send + Sync> PlayerActor for RandomActor<R> {
                 .iter()
                 .take(5)
                 .enumerate()
-                .filter(|(i, n)| *n > 0)
+                .filter(|(_, n)| *n > 0)
                 .collect::<SmallVec<_, 5>>();
             tokens.shuffle(&mut self.rng);
             if tokens.len() >= 1 {
@@ -58,7 +58,7 @@ impl<R: RngCore + Send + Sync> PlayerActor for RandomActor<R> {
                 .iter()
                 .take(5)
                 .enumerate()
-                .filter(|(i, n)| *n > 3)
+                .filter(|(_, n)| *n > 3)
                 .collect::<Vec<_>>();
             if let Some((i, _)) = tokens.first() {
                 let mut colors = ColorVec::empty();
@@ -172,7 +172,7 @@ impl<R: RngCore + Send + Sync> PlayerActor for RandomActor<R> {
             .nobles
             .iter()
             .enumerate()
-            .filter(|(_, n)| current_player.development_cards.bonus >= n.requires)
+            .filter(|(_, n)| current_player.development_cards.bonus.le(&n.requires))
             .collect::<SmallVec<_, 5>>();
         let (idx, _) = possible_nobles.choose(&mut self.rng).unwrap();
         Ok(SelectNoblesAction(*idx))

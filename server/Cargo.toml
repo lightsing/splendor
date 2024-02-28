@@ -7,7 +7,7 @@ license.workspace = true
 [dependencies]
 anyhow = "1.0"
 async-trait.workspace = true
-futures-util = "0.3"
+futures-util.workspace = true
 log.workspace = true
 pretty_env_logger.workspace = true
 rand.workspace = true
@@ -18,5 +18,5 @@ smallvec.workspace = true
 splendor-core.workspace = true
 splendor-engine.workspace = true
 tokio.workspace = true
-tokio-tungstenite = "0.21"
+tokio-tungstenite.workspace = true
 thiserror.workspace = true

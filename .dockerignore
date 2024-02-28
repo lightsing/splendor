@@ -6,6 +6,7 @@
 /book
 # other language sdk
 /sdk
+!/sdk/rust
 # json schema
 /schema
 # Rust built target
