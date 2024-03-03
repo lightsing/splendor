@@ -38,7 +38,7 @@ impl Serialize for Tier {
 impl<'de> Deserialize<'de> for Tier {
     #[inline(always)]
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        Ok(Tier::try_from(u8::deserialize(deserializer)?).map_err(serde::de::Error::custom)?)
+        Tier::try_from(u8::deserialize(deserializer)?).map_err(serde::de::Error::custom)
     }
 }
 

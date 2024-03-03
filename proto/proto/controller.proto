@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package controller;
+
+service Controller {
+  rpc CreateGame(CreateGameRequest) returns (CreateGameResponse);
+  rpc StartGame(StartGameRequest) returns (google.protobuf.Empty);
+}
+
+message CreateGameRequest {
+  string server_image = 1;
+  repeated string player_images = 2;
+}
+
+message CreateGameResponse {
+  string game_id = 1;
+}
+
+message StartGameRequest {
+  string game_id = 1;
+}

@@ -1,0 +1,20 @@
+[package]
+name = "splendor-supervisor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = "1.0"
+bollard = "0.16"
+log.workspace = true
+futures-util.workspace = true
+pretty_env_logger.workspace = true
+prost.workspace = true
+splendor-proto.workspace = true
+tokio.workspace = true
+tokio-stream = { workspace = true, features = ["net"] }
+thiserror.workspace = true
+tonic.workspace = true
+tower.workspace = true
+uuid.workspace = true

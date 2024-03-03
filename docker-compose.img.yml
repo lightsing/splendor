@@ -1,0 +1,102 @@
+version: '3'
+
+services:
+  server:
+    image: splendor-server:latest
+    environment:
+      - RUST_LOG=info
+      - N_PLAYERS=4
+      - SECRETS_PATH=/app/secrets
+      - SERVER_ADDR=0.0.0.0:8080
+    volumes:
+      - secrets0:/app/secrets/player0
+      - secrets1:/app/secrets/player1
+      - secrets2:/app/secrets/player2
+      - secrets3:/app/secrets/player3
+    networks:
+      - player0_net
+      - player1_net
+      - player2_net
+      - player3_net
+
+  player0:
+    image: splendor-py:latest
+    depends_on:
+      - server
+    links:
+      - server
+    environment:
+      - RPC_URL=ws://server:8080
+    volumes:
+      - type: volume
+        source: secrets0
+        target: /app/secrets
+        read_only: true
+        volume:
+          nocopy: true
+    networks:
+      - player0_net
+  player1:
+    image: splendor-rust:latest
+    depends_on:
+      - server
+    links:
+      - server
+    environment:
+      - RPC_URL=ws://server:8080
+    volumes:
+      - type: volume
+        source: secrets1
+        target: /app/secrets
+        read_only: true
+        volume:
+          nocopy: true
+    networks:
+      - player1_net
+  player2:
+    image: splendor-go:latest
+    depends_on:
+      - server
+    links:
+      - server
+    environment:
+      - RPC_URL=ws://server:8080
+    volumes:
+      - type: volume
+        source: secrets2
+        target: /app/secrets
+        read_only: true
+        volume:
+          nocopy: true
+    networks:
+      - player2_net
+  player3:
+    image: splendor-go:latest
+    depends_on:
+      - server
+    links:
+      - server
+    environment:
+      - RPC_URL=ws://server:8080
+    volumes:
+      - type: volume
+        source: secrets3
+        target: /app/secrets
+        read_only: true
+        volume:
+          nocopy: true
+    networks:
+      - player3_net
+
+volumes:
+  secrets0:
+  secrets1:
+  secrets2:
+  secrets3:
+
+
+networks:
+  player0_net:
+  player1_net:
+  player2_net:
+  player3_net:

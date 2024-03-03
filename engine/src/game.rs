@@ -4,10 +4,10 @@ use crate::error::StepError;
 use crate::nobles::Nobles;
 use crate::player::PlayerContext;
 use rand::RngCore;
-use smallvec::SmallVec;
+use smallvec::{smallvec, SmallVec};
 use splendor_core::{
-    ActionRecord, CardPoolSnapshot, Color, ColorVec, GameSnapshot, Noble, PlayerActor,
-    PlayerSnapshot, Record, SelectNoblesAction, Tier, MAX_PLAYERS,
+    ActionRecord, CardPoolSnapshot, Color, ColorVec, GameSnapshot, Noble, PlayerActor, Record,
+    SelectNoblesAction, Tier, MAX_PLAYERS,
 };
 use std::array;
 
@@ -165,8 +165,8 @@ impl GameContext {
             trace!("Round {} ended", self.current_round);
             if self.nop_count == self.n_players {
                 self.pretty_print();
-                //panic!("All players did nothing, game stuck, {:#?}", self);
-                std::process::exit(1);
+                error!("All players did nothing, game stuck, {:#?}", self);
+                return Ok(Some(smallvec![]));
             }
             self.nop_count = 0;
             self.current_round += 1;
@@ -210,7 +210,7 @@ impl GameContext {
             winner_candidates
         };
 
-        trace!("Winner(s): {:?}", winner);
+        info!("Winner(s): {:?}", winner);
 
         winner
     }

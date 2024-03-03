@@ -10,6 +10,7 @@ async-trait.workspace = true
 futures-util.workspace = true
 log.workspace = true
 pretty_env_logger.workspace = true
+prost = { workspace = true, optional = true }
 rand.workspace = true
 rand_chacha.workspace = true
 serde.workspace = true
@@ -17,6 +18,13 @@ serde_json.workspace = true
 smallvec.workspace = true
 splendor-core.workspace = true
 splendor-engine.workspace = true
+splendor-proto = { workspace = true, optional = true }
+thiserror.workspace = true
 tokio.workspace = true
 tokio-tungstenite.workspace = true
-thiserror.workspace = true
+tonic = { workspace = true, optional = true }
+tower = { workspace = true, optional = true }
+uuid.workspace = true
+
+[features]
+supervisor = ["prost", "splendor-proto", "tonic", "tower"]

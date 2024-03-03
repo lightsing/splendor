@@ -10,22 +10,27 @@ use smallvec::SmallVec;
 use splendor_core::{PlayerActor, MAX_PLAYERS};
 use splendor_engine::GameContext;
 use std::env;
+use std::time::Duration;
 use tokio::sync::mpsc::Sender;
+use uuid::Uuid;
 
 mod actor;
 mod error;
+mod supervisor;
 mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     pretty_env_logger::init();
 
+    let game_id = env::var("GAME_ID")?.parse::<Uuid>()?;
+    let mut supervisor = supervisor::Supervisor::new(game_id).await?;
     let n_players = env::var("N_PLAYERS")?.parse::<usize>()?;
     // random_seed use to deterministically reproduce the game.
     let random_seed = env::var("RANDOM_SEED")
         .ok()
-        .map(|s| s.parse::<u64>().ok())
-        .flatten();
+        .and_then(|s| s.parse::<u64>().ok());
+    let step_timeout = env::var("STEP_TIMEOUT")?.parse::<u64>()?;
 
     let secrets = gen_secrets(n_players);
     write_secrets(secrets).await?;
@@ -40,7 +45,27 @@ async fn main() -> anyhow::Result<()> {
     };
 
     while !game.game_end() {
-        game.step().await?;
+        let current_player = game.current_player();
+        supervisor.prepare_player_change(current_player).await?;
+        let step = tokio::time::timeout(Duration::from_secs(step_timeout), game.step()).await;
+        match step {
+            Ok(Ok(None)) => continue,
+            Ok(Ok(Some(winner))) => {
+                supervisor.report_game_ends(&winner, false, false).await?;
+            }
+            Ok(Err(_)) | Err(_) => {
+                supervisor
+                    .report_game_ends(
+                        &(0..n_players)
+                            .filter(|idx| *idx != current_player)
+                            .collect::<Vec<_>>(),
+                        step.is_err(),
+                        step.is_ok_and(|r| r.is_err()),
+                    )
+                    .await?;
+                break;
+            }
+        };
     }
     drop(game);
 
@@ -51,7 +76,7 @@ async fn main() -> anyhow::Result<()> {
 
 fn gen_secrets(n: usize) -> &'static [String] {
     let mut rng = rand::thread_rng();
-    let mut secrets = Box::new(Vec::new());
+    let mut secrets = Box::<Vec<String>>::default();
     for _ in 0..n {
         secrets.push(Alphanumeric.sample_string(&mut rng, 32));
     }

@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package supervisor;
+
+service Supervisor {
+    rpc ReportGameEnds(GameEndsMessage) returns (google.protobuf.Empty) {}
+
+    // Notify the supervisor that the next player is about to play.
+    // Supervisor needs to pause current player and prepare next player.
+    // This happens just before the game server requests the next player to play.
+    rpc PreparePlayerChange(PreparePlayerChangeMessage) returns (google.protobuf.Empty) {}
+}
+
+message GameStartsMessage {
+    string game_id = 1;
+}
+
+message GameEndsMessage {
+    string game_id = 1;
+    repeated int32 winners = 2;
+
+    enum EndReason {
+        NORMAL = 0;
+        TIMEOUT = 1;
+        STEP_ERROR = 2;
+        DRAW = 3;
+    }
+    EndReason reason = 3;
+}
+
+message PreparePlayerChangeMessage {
+    string game_id = 1;
+    int32 next_player = 2;
+}
