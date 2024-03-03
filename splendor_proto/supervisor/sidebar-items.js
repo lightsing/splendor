@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["game_ends_message","supervisor_client","supervisor_server"],"struct":["GameEndsMessage","GameStartsMessage","PreparePlayerChangeMessage"]};
