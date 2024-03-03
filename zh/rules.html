@@ -1,0 +1,283 @@
+<!DOCTYPE HTML>
+<html lang="zh-Hans" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>规则 - Splendor AI 比赛指南</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> 序言</a></li><li class="chapter-item expanded "><a href="rules.html" class="active"><strong aria-hidden="true">2.</strong> 规则</a></li><li class="chapter-item expanded "><a href="getting-started/index.html"><strong aria-hidden="true">3.</strong> 入门</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting-started/sdk.html"><strong aria-hidden="true">3.1.</strong> SDK</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="getting-started/sdk/rust.html"><strong aria-hidden="true">3.1.1.</strong> Rust</a></li><li class="chapter-item expanded "><a href="getting-started/sdk/py.html"><strong aria-hidden="true">3.1.2.</strong> Python</a></li><li class="chapter-item expanded "><a href="getting-started/sdk/go.html"><strong aria-hidden="true">3.1.3.</strong> Golang</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="contest-rules.html"><strong aria-hidden="true">4.</strong> 比赛规则</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Splendor AI 比赛指南</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="游戏规则"><a class="header" href="#游戏规则">游戏规则</a></h1>
+<h2 id="内容物"><a class="header" href="#内容物">内容物</a></h2>
+<p>《璀璨宝石》包括 40 个指示物：绿色、白色、蓝色、黑色和红色各 7 个，以及 5 个黄色；还包括 90 张发展卡：40 张等级 1、30 张等级 2 和 20 张等级 3；以及 10 张贵族卡。</p>
+<h2 id="游戏设置"><a class="header" href="#游戏设置">游戏设置</a></h2>
+<p>将同等级的发展卡堆各自洗牌，接著将卡牌按照等级低至高排列（ O; OO; OOO）。
+每个等级翻出４张卡牌。
+将贵族图板洗牌，接著翻开玩家人数加一的图版数量（例如：４人翻开５片图版）剩下的图版从游戏中移除，且不再使用。最后，将６个指示物成堆放置（以颜色分类），方便玩家拿取。</p>
+<h2 id="2-人或-3-人游玩"><a class="header" href="#2-人或-3-人游玩">2 人或 3 人游玩</a></h2>
+<ul>
+<li>2 人游玩：将每种颜色的指示物移除 3 个，黄金保持不变（5 个）。</li>
+<li>3 人游玩：将每种颜色的指示物移除 2 个，黄金保持不变（5 个）。</li>
+</ul>
+<h2 id="游戏概览"><a class="header" href="#游戏概览">游戏概览</a></h2>
+<p>在游戏过程中，玩家拿取宝石以及黄金指示物。使用这些指示物，可以购买标示声望点数 / 红利的发展卡。而这些红利点数使玩家购买发展卡时，花费更少的金钱。当玩家获得足够红利点数时，可以获得贵族的访问（因此获得声望点数）当有玩家获得15点声望点数，回合结束，获得最高声望点数的玩家获胜。</p>
+<h2 id="概念"><a class="header" href="#概念">概念</a></h2>
+<h3 id="发展卡"><a class="header" href="#发展卡">发展卡</a></h3>
+<p>为了获得声望点数，玩家必须购买发展卡。桌子中央展开的发展卡，在游戏中，玩家随时可以购买。手上保留的发展卡，只能被持有的玩家购买。</p>
+<h3 id="贵族图板"><a class="header" href="#贵族图板">贵族图板</a></h3>
+<p>贵族图板展示在场中央，在回合结束后，一个玩家自动获得贵族拜访，如果玩家有足够的红利点数(而且只有红利点数)，他们将会获得相对应的图板。</p>
+<p>玩家无法拒绝贵族拜访。</p>
+<p>接受贵族拜访不算执行一个动作。每个图板值３分，而且玩家每回合只能获得一个图版。</p>
+<h3 id="红利点数"><a class="header" href="#红利点数">红利点数</a></h3>
+<p>玩家之前购买的卡片，可提供购买新卡牌的折扣。每个特定颜色的红利点数可代表一个宝石。</p>
+<p>如果玩家手上有 2 个蓝宝石的红利点数，想购买价值 2 个蓝宝石及 1 个绿宝石的卡牌，只需花费 1 个绿宝石。</p>
+<p>玩家手上拥有足够购买来的发展卡（带来的许多红利），他们甚至可以不花任何宝石即可购买发展卡。</p>
+<h3 id="贵族"><a class="header" href="#贵族">贵族</a></h3>
+<p>当回合结束时，检查是否可以获得贵族的拜访。</p>
+<p>当一位玩家拥有贵族图板上指定的的红利种类和数量，就可以获得贵族的来访。玩家无法拒绝贵族的来访，并不算在一个行动。</p>
+<p>当一个玩家拥有足够的红利，且回合结束时可获得一个以上的贵族来访，玩家可选择要获得哪一个贵族来访。</p>
+<p>贵族图板需要正面朝上放在玩家面前。</p>
+<h2 id="行动"><a class="header" href="#行动">行动</a></h2>
+<p>由一个玩家开始，依序游玩，轮到玩家时，必须从以下四个动作择一个执行：</p>
+<ul>
+<li>拿走 3 个不同颜色的指示物。</li>
+<li>拿走 2 个相同颜色的指示物。（当该颜色的宝石指示物至少有 4 个以上，才能取走２个同色的宝石指示物。）</li>
+<li>保留一张发展卡以及拿走 1 个黄金指示物（万用指示物）。</li>
+<li>自场上购买一张翻开的发展卡，或购买一张之前保留的发展卡。</li>
+</ul>
+<h3 id="选择指示物"><a class="header" href="#选择指示物">选择指示物</a></h3>
+<p>如果没办法一次拿足３种不同颜色的指示物，玩家也可以拿走 2 种，甚至 1 种。</p>
+<p>玩家在回合结束时，无法拥有超过 10 个以上的指示物（包含万用的黄金指示物），如果发生这种情形，玩家必须把多出的指示物放回。玩家可以归还全部或部分他们刚刚拿取的宝石，玩家拥有的宝石指示物必须公开可见。</p>
+<p>小提醒：当该颜色的宝石指示物至少有４个以上，玩家才能取走２个同色的宝石指示物。</p>
+<h3 id="保留一张发展卡"><a class="header" href="#保留一张发展卡">保留一张发展卡</a></h3>
+<p>保留一张发展卡，玩家只需从桌子中央拿走一张正面朝上的发展卡或是（如果你感觉很幸运）从三个牌堆（等级 O; OO; OOO）中抽取最上方的一张发展卡，不用让其他玩家看见。保留的发展卡可以留在手上，无法弃牌，玩家不得拥有３张以上的发展卡，只有透过购买，才能将这张卡片用掉（请见下一章节说明）。</p>
+<p>保留一张卡片也是获得黄金（万用）指示物的唯一方法。如果没有黄金指示物在场上，你还是可以保留卡片，但不能拿取任何黄金指示物。</p>
+<h3 id="购买-1-张发展卡"><a class="header" href="#购买-1-张发展卡">购买 1 张发展卡</a></h3>
+<p>为了购买发展卡，玩家必须花费发展卡上相对应的指示物。黄金可以取代任何颜色的宝石。花费的宝石（包含万用指示物）会回到场中央。</p>
+<p>玩家可以购买场中央的所有面朝上的发展卡，或是手上前一回合所保留的发展卡。</p>
+<p>玩家将购买的发展卡片按照颜色垂直排列，使奖励及声望分数能被看见。</p>
+<p>每张卡片上的红利点数及声望点数，必须让所有玩家看见。</p>
+<blockquote>
+<p>重点：当发展卡从场中央被购买亦或是被保留时，必须补充同等级的发展卡。在游戏中，每个等级必须保持４张发展卡正面朝上（若该等级的牌库空了，则无须维持 4 张）。</p>
+</blockquote>
+<h2 id="游戏结束"><a class="header" href="#游戏结束">游戏结束</a></h2>
+<p>当一位玩家获得 15 分或以上的声望点数时，完成该回合，让每位玩家有相同的回合数。</p>
+<p>最高分的玩家获胜（别忘了计算你贵族图板上的声望点数），遇到平手时，购买最少发展卡的玩家获胜。</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="getting-started/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="getting-started/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
