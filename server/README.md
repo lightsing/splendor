@@ -19,6 +19,7 @@ docker build -t splendor-server:latest -f Dockerfile ..
 |      GAME_ID      | The game uuid                                                         |              an uuid               |
 | SUPERVISOR_SOCKET | The supervisor grpc socket path                                       |            a valid path            |
 |    STEP_TIMEOUT   | The timeout for each player's step in seconds                         |           a positive u64           |
+
 ## Secrets
 
 The secrets are wrote to `$SECRETS_PATH/player$idx/secret`, make sure map the dir to actor container.

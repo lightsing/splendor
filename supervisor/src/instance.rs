@@ -7,7 +7,8 @@ use bollard::{
     Docker,
 };
 use futures_util::{future, TryFutureExt};
-use std::mem;
+use std::future::Future;
+use std::{env, mem};
 use uuid::Uuid;
 
 #[derive(Debug)]
@@ -25,6 +26,8 @@ impl GameInstance {
         docker: Docker,
         server_img: &str,
         player_imgs: &[P],
+        seed: Option<u64>,
+        step_timeout: u64,
     ) -> Result<Self, bollard::errors::Error> {
         let id = Uuid::new_v4();
         let n_players = player_imgs.len();
@@ -52,6 +55,37 @@ impl GameInstance {
         }))
         .await?;
 
+        let mut server_env = vec![
+            "RUST_LOG=info".to_string(),
+            format!("GAME_ID={id}"),
+            format!("N_PLAYERS={n_players}"),
+            format!("STEP_TIMEOUT={step_timeout}"),
+            "SECRETS_PATH=/app/secrets".to_string(),
+            "SERVER_ADDR=0.0.0.0:8080".to_string(),
+            "SUPERVISOR_SOCKET=/var/run/splendor/supervisor.sock".to_string(),
+        ];
+        if let Some(seed) = seed {
+            server_env.push(format!("SEED={}", seed));
+        }
+
+        let mut mounts = volumes
+            .iter()
+            .enumerate()
+            .map(|(idx, name)| Mount {
+                target: Some(format!("/app/secrets/player{idx}", idx = idx)),
+                source: Some(name.clone()),
+                typ: Some(MountTypeEnum::VOLUME),
+                ..Default::default()
+            })
+            .collect::<Vec<_>>();
+
+        mounts.push(Mount {
+            target: Some("/var/run/splendor".to_string()),
+            source: Some(env::var("SHARED_VOLUME").expect("SUPERVISOR_SOCKET must be set")),
+            typ: Some(MountTypeEnum::VOLUME),
+            ..Default::default()
+        });
+
         // create server container
         let server = docker
             .create_container(
@@ -63,26 +97,10 @@ impl GameInstance {
                     image: Some(server_img.to_string()),
                     hostname: Some("server".to_string()),
                     host_config: Some(HostConfig {
-                        mounts: Some(
-                            volumes
-                                .iter()
-                                .enumerate()
-                                .map(|(idx, name)| Mount {
-                                    target: Some(format!("/app/secrets/player{idx}", idx = idx)),
-                                    source: Some(name.clone()),
-                                    typ: Some(MountTypeEnum::VOLUME),
-                                    ..Default::default()
-                                })
-                                .collect(),
-                        ),
+                        mounts: Some(mounts),
                         ..Default::default()
                     }),
-                    env: Some(vec![
-                        "RUST_LOG=info".to_string(),
-                        format!("N_PLAYERS={}", n_players),
-                        "SECRETS_PATH=/app/secrets".to_string(),
-                        "SERVER_ADDR=0.0.0.0:8080".to_string(),
-                    ]),
+                    env: Some(server_env),
                     networking_config: Some(bollard::container::NetworkingConfig {
                         endpoints_config: networks
                             .iter()
@@ -136,7 +154,11 @@ impl GameInstance {
                                     }]),
                                     ..Default::default()
                                 }),
-                                env: Some(vec!["RPC_URL=ws://server:8080".to_string()]),
+                                env: Some(vec![
+                                    "RPC_URL=ws://server:8080".to_string(),
+                                    "CLIENT_SECRET=/app/secrets/secret".to_string(),
+                                    format!("STEP_TIMEOUT={}", step_timeout),
+                                ]),
                                 networking_config: Some(bollard::container::NetworkingConfig {
                                     endpoints_config: [(
                                         format!("game-{id}-player{idx}-net", id = id),
@@ -195,7 +217,7 @@ impl GameInstance {
                         player,
                         UpdateContainerOptions::<String> {
                             cpu_period: Some(100000),
-                            cpu_quota: Some(100), // allow to use 0.1%
+                            cpu_quota: Some(1000), // allow to use 1%
                             ..Default::default()
                         },
                     )
@@ -214,56 +236,42 @@ impl GameInstance {
             )
             .await
     }
-}
 
-impl Drop for GameInstance {
-    fn drop(&mut self) {
-        let id = self.id;
-        let docker = self.docker.clone();
-        let server = self.server.take();
-        let players = mem::take(&mut self.players);
-        let networks = mem::take(&mut self.networks);
-        let volumes = mem::take(&mut self.volumes);
-        tokio::spawn(async move {
-            let fut = async move {
-                future::try_join_all(players.iter().map(|player| {
-                    debug!("removing player container {player}");
-                    docker.remove_container(
-                        player,
-                        Some(RemoveContainerOptions {
-                            force: true,
-                            ..Default::default()
-                        }),
-                    )
-                }))
+    pub async fn cleanup(self) -> Result<(), bollard::errors::Error> {
+        future::try_join_all(self.players.iter().map(|player| {
+            debug!("removing player container {player}");
+            self.docker.remove_container(
+                player,
+                Some(RemoveContainerOptions {
+                    force: true,
+                    ..Default::default()
+                }),
+            )
+        }))
+        .await?;
+        if let Some(server) = self.server {
+            debug!("removing server container {server}");
+            self.docker
+                .remove_container(
+                    &server,
+                    Some(RemoveContainerOptions {
+                        force: true,
+                        ..Default::default()
+                    }),
+                )
                 .await?;
-                if let Some(server) = server {
-                    debug!("removing server container {server}");
-                    docker
-                        .remove_container(
-                            &server,
-                            Some(RemoveContainerOptions {
-                                force: true,
-                                ..Default::default()
-                            }),
-                        )
-                        .await?;
-                }
-                future::try_join_all(networks.iter().map(|network| {
-                    debug!("removing network {network}");
-                    docker.remove_network(network)
-                }))
-                .await?;
-                future::try_join_all(volumes.iter().map(|network| {
-                    debug!("removing volume {network}");
-                    docker.remove_volume(network, Some(RemoveVolumeOptions { force: true }))
-                }))
-                .await?;
-                Ok::<(), bollard::errors::Error>(())
-            };
-            if let Err(e) = fut.await {
-                error!("Error cleaning up game instance {id}: {e:?}");
-            }
-        });
+        }
+        future::try_join_all(self.networks.iter().map(|network| {
+            debug!("removing network {network}");
+            self.docker.remove_network(network)
+        }))
+        .await?;
+        future::try_join_all(self.volumes.iter().map(|network| {
+            debug!("removing volume {network}");
+            self.docker
+                .remove_volume(network, Some(RemoveVolumeOptions { force: true }))
+        }))
+        .await?;
+        Ok(())
     }
 }

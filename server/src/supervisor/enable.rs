@@ -1,6 +1,7 @@
 use super::SupervisorError;
 use splendor_proto::supervisor::{
-    game_ends_message::EndReason, supervisor_client::SupervisorClient, PreparePlayerChangeMessage,
+    game_ends_message::EndReason, supervisor_client::SupervisorClient, GameEndsMessage,
+    PreparePlayerChangeMessage,
 };
 use std::env;
 use tokio::net::UnixStream;
@@ -24,7 +25,11 @@ impl Supervisor {
                 // Connect to a Uds socket
                 UnixStream::connect(path)
             }))
-            .await?;
+            .await
+            .map_err(|e| {
+                error!("Failed to connect to supervisor: {}", e);
+                SupervisorError::ChannelError
+            })?;
 
         Ok(Self {
             uuid,
@@ -50,7 +55,7 @@ impl Supervisor {
         self.client
             .report_game_ends(GameEndsMessage {
                 game_id: self.uuid.to_string(),
-                winners: winners.into_iter().map(|i| i as i32).collect(),
+                winners: winners.iter().map(|i| *i as i32).collect(),
                 reason: reason as i32,
             })
             .await

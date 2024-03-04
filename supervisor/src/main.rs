@@ -3,12 +3,14 @@ extern crate log;
 
 use crate::instance::GameInstance;
 use bollard::Docker;
+use futures_util::{stream::FuturesUnordered, StreamExt};
 use splendor_proto::{
     controller::{
         controller_server::{Controller, ControllerServer},
         CreateGameRequest, CreateGameResponse, StartGameRequest,
     },
     supervisor::{
+        game_ends_message::EndReason,
         supervisor_server::{Supervisor, SupervisorServer},
         GameEndsMessage, PreparePlayerChangeMessage,
     },
@@ -43,8 +45,14 @@ impl GameController {
 
     pub async fn cleanup(&self) {
         let mut guard = self.games.lock().await;
+        let mut futures = FuturesUnordered::new();
         for (_, game) in guard.drain() {
-            drop(game)
+            futures.push(game.cleanup());
+        }
+        while let Some(ret) = futures.next().await {
+            if let Err(e) = ret {
+                error!("Failed to cleanup game: {}", e);
+            }
         }
     }
 }
@@ -58,17 +66,25 @@ impl Controller for GameController {
         let CreateGameRequest {
             server_image,
             player_images,
+            seed,
+            step_timeout,
         } = request.into_inner();
         if player_images.len() != 3 && player_images.len() != 4 {
             return Err(Status::invalid_argument("Invalid number of players"));
         }
 
-        let game = GameInstance::new(self.docker.clone(), &server_image, &player_images)
-            .await
-            .map_err(|e| {
-                error!("Failed to create game: {}", e);
-                Status::internal(format!("Failed to create game: {}", e))
-            })?;
+        let game = GameInstance::new(
+            self.docker.clone(),
+            &server_image,
+            &player_images,
+            seed,
+            step_timeout.unwrap_or(60 * 5), // 5 minutes
+        )
+        .await
+        .map_err(|e| {
+            error!("Failed to create game: {}", e);
+            Status::internal(format!("Failed to create game: {}", e))
+        })?;
         let game_id = game.id;
         self.games.lock().await.insert(game_id, game);
         Ok(Response::new(CreateGameResponse {
@@ -100,12 +116,27 @@ impl Supervisor for GameController {
         &self,
         request: Request<GameEndsMessage>,
     ) -> Result<Response<()>, Status> {
-        // TODO: handle game end
-        let game_id = request.into_inner().game_id.parse::<Uuid>().map_err(|_| {
+        let GameEndsMessage {
+            game_id,
+            winners,
+            reason,
+        } = request.into_inner();
+        let game_id = game_id.parse::<Uuid>().map_err(|_| {
             error!("Received invalid UUID while handling report_game_ends");
             Status::invalid_argument("Invalid UUID")
         })?;
-        self.games.lock().await.remove(&game_id);
+        let reason = EndReason::try_from(reason).map_err(|_| {
+            error!(
+                "Received invalid EndReasom while handling report_game_ends, reason: {}",
+                reason
+            );
+            Status::invalid_argument("Invalid EndReasom")
+        })?;
+        info!("Game#{game_id} Ends ({reason:?}), winners: {winners:?}");
+        let game = self.games.lock().await.remove(&game_id).unwrap();
+        if let Err(e) = game.cleanup().await {
+            error!("Failed to cleanup game: {}", e);
+        }
         Ok(Response::new(()))
     }
 
@@ -129,11 +160,15 @@ impl Supervisor for GameController {
             );
             Status::not_found("Unknown game ID")
         })?;
+        info!(
+            "Prepare player change for game#{game_id}, next player: {}",
+            req.next_player
+        );
         game.prepare_player_change(req.next_player as usize)
             .await
             .map_err(|e| {
                 error!(
-                    "Failed to prepare player change for game ID: {}",
+                    "Failed to prepare player change for game ID: {}, cause: {e}",
                     req.game_id
                 );
                 Status::internal(format!("Failed to prepare player change: {}", e))
@@ -147,46 +182,46 @@ async fn main() -> anyhow::Result<()> {
     pretty_env_logger::init();
 
     let game_supervisor = GameController::new()?;
+    let shared_volume_path = PathBuf::from(
+        std::env::var_os("SHARED_VOLUME_PATH")
+            .expect("SHARED_VOLUME_PATH must be set to the path of the UDS socket"),
+    );
+    let socket_path = shared_volume_path.join("supervisor.sock");
 
     let supervisor_server = {
         let game_supervisor = game_supervisor.clone();
-        let socket_path = PathBuf::from(
-            std::env::var_os("SUPERVISOR_SOCKET_PATH")
-                .expect("SUPERVISOR_SOCKET_PATH must be set to the path of the UDS socket"),
-        );
-        tokio::fs::create_dir_all(socket_path.parent().unwrap()).await?;
         info!("Starting supervisor server at: {socket_path:?}");
         let uds = UnixListener::bind(&socket_path)?;
         let uds_stream = UnixListenerStream::new(uds);
-        Server::builder()
-            .add_service(SupervisorServer::new(game_supervisor))
-            .serve_with_incoming(uds_stream)
+        tokio::spawn(
+            Server::builder()
+                .add_service(SupervisorServer::new(game_supervisor))
+                .serve_with_incoming(uds_stream),
+        )
     };
 
-    let controller_erver = {
+    let controller_server = {
         let game_supervisor = game_supervisor.clone();
-        let socket_path = PathBuf::from(
-            std::env::var_os("CONTROLLER_SOCKET_PATH")
-                .expect("CONTROLLER_SOCKET_PATH must be set to the path of the UDS socket"),
-        );
-        tokio::fs::create_dir_all(socket_path.parent().unwrap()).await?;
-        info!("Starting controller server at: {socket_path:?}");
-        let uds = UnixListener::bind(&socket_path)?;
-        let uds_stream = UnixListenerStream::new(uds);
-        Server::builder()
-            .add_service(ControllerServer::new(game_supervisor))
-            .serve_with_incoming(uds_stream)
+        let addr = std::env::var("CONTROLLER_ADDR")
+            .expect("CONTROLLER_ADDR must be set to a socket address");
+        info!("Starting controller server at: {addr:?}");
+        tokio::spawn(
+            Server::builder()
+                .add_service(ControllerServer::new(game_supervisor))
+                .serve(addr.parse().unwrap()),
+        )
     };
 
     tokio::select! {
         _ = supervisor_server => {
             error!("Supervisor server terminated unexpectedly");
         }
-        _ = controller_erver => {
+        _ = controller_server => {
             error!("Controller server terminated unexpectedly");
         }
         _ = tokio::signal::ctrl_c() => {
             info!("Shutting down");
+            tokio::fs::remove_file(&socket_path).await?;
             game_supervisor.cleanup().await;
         }
     }
